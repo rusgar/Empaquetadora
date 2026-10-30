@@ -9,7 +9,7 @@ export const GrafcetModel = {
 
   agregarEtapa(x, y, inicial = false) {
     const id = 'E' + this._nextId++;
-    const etapa = { id, type: 'etapa', x, y, inicial };
+    const etapa = { id, type: 'etapa', x, y, inicial, acciones: [] }; // <-- AQUÍ ESTÁ LA CLAVE
     this.etapas.push(etapa);
     return etapa;
   },

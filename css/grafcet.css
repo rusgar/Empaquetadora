@@ -42,9 +42,13 @@
   width: 100%; padding: 4px; background: #000; color: #fff; 
   border: 1px solid var(--border); border-radius: 4px; margin-bottom: 8px;
 }
-.etapa-svg.activa circle { 
-  fill: #22c55e; /* Verde */
-  stroke: #16a34a; 
-  stroke-width: 3;
-  filter: drop-shadow(0 0 8px #22c55e);
-}
+.etapa-svg.inicial circle { 
+    fill: #38bdf8; 
+    stroke: #0f172a;
+     stroke-width: 3; 
+    }
+.etapa-svg.inicial.activa circle {
+     fill: #22c55e !important; 
+     stroke: #16a34a !important;
+      stroke-width: 3 !important; 
+    }
