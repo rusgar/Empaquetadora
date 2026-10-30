@@ -80,7 +80,8 @@ export class GrafcetEngine {
               cilindro_extendido: IO.cilindro_extendido,
               contador: IO.contador,
               timer_cilindro: IO.timer_cilindro,
-              caja_empujada: IO.caja_empujada, // Nueva variable para las condiciones
+              caja_empujada: IO.caja_empujada,
+              check_caja: IO.timer_check > 0 // Nueva variable para las condiciones
             };
             const evaluador = new Function(...Object.keys(context), `return ${t.condicion};`);
             resultado = evaluador(...Object.values(context));
