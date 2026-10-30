@@ -24,14 +24,43 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. Motor de Simulación
   const engine = new GrafcetEngine();
   
-  // Suscribirse a las actualizaciones del motor
   engine.onUpdate(() => {
     editor.setEtapasActivas(engine.etapasActivas);
     updateEmpaquetadora();
     actualizarMetricas();
   });
 
-  // 5. Conectar Paleta
+  // 5. TRUCO DE DESARROLLO: Cargar GRAFCET de prueba si está vacío
+  if (GrafcetModel.etapas.length === 0) {
+    const e1 = GrafcetModel.agregarEtapa(150, 200, true);
+    e1.acciones = ['motor_cinta=1'];
+    
+    const e3 = GrafcetModel.agregarEtapa(350, 200, false);
+    e3.acciones = ['motor_cinta=0', 'cilindro=1'];
+    
+    const e5 = GrafcetModel.agregarEtapa(550, 200, false);
+    e5.acciones = ['cilindro=0', 'contador+1'];
+
+    const t2 = GrafcetModel.agregarTransicion(250, 250);
+    t2.condicion = 'fotocelula==true';
+    
+    const t4 = GrafcetModel.agregarTransicion(450, 250);
+    t4.condicion = 'timer_cilindro > 1.5';
+    
+    const t6 = GrafcetModel.agregarTransicion(650, 250);
+    t6.condicion = 'contador<10';
+
+    GrafcetModel.agregarConexion(e1.id, t2.id);
+    GrafcetModel.agregarConexion(t2.id, e3.id);
+    GrafcetModel.agregarConexion(e3.id, t4.id);
+    GrafcetModel.agregarConexion(t4.id, e5.id);
+    GrafcetModel.agregarConexion(e5.id, t6.id);
+    GrafcetModel.agregarConexion(t6.id, e1.id);
+
+    editor.render();
+  }
+
+  // 6. Conectar Paleta
   document.querySelectorAll('.paleta-item').forEach(item => {
     item.addEventListener('click', () => {
       const tipo = item.getAttribute('data-tipo');
@@ -42,22 +71,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 6. Actualizar métricas
+  // 7. Actualizar métricas
   function actualizarMetricas() {
     document.getElementById('m-trans').textContent = GrafcetModel.transiciones.length;
     
-    // Mostrar etapas activas
     const activasStr = Array.from(engine.etapasActivas).join(', ');
     document.getElementById('m-ciclo').textContent = activasStr || '--';
     
-    // Contador
     document.getElementById('m-cajas').textContent = `${IO.contador} / ${IO.lote_objetivo}`;
     
-    // Estados de validación (se irán afinando)
-    document.getElementById('e-arranque').innerHTML = engine.enEjecucion ? '✅ Arranque' : '⏸ Arranque';
+    if (engine.enEjecucion) {
+      document.getElementById('e-arranque').innerHTML = '✅ Arranque';
+      document.getElementById('e-arranque').style.color = 'var(--ok)';
+    } else {
+      document.getElementById('e-arranque').innerHTML = '⏸ Arranque';
+      document.getElementById('e-arranque').style.color = 'var(--text-muted)';
+    }
+
+    // Validación del Contador
+    if (IO.contador >= 10) {
+      document.getElementById('e-contador').innerHTML = '✅ Contador 10 (Lote completo)';
+      document.getElementById('e-contador').style.color = 'var(--ok)';
+    } else {
+      document.getElementById('e-contador').innerHTML = '⏸ Contador 10';
+      document.getElementById('e-contador').style.color = 'var(--text-muted)';
+    }
   }
 
-  // 7. Botones
+  // 8. Botones
   document.getElementById('btn-run').addEventListener('click', () => {
     engine.start();
     actualizarMetricas();
@@ -75,12 +116,12 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-reset').addEventListener('click', () => {
     engine.reset();
     IO.reset();
-    editor.setEtapasActivas(new Set()); // Limpiar visual
+    editor.setEtapasActivas(new Set());
     updateEmpaquetadora();
     actualizarMetricas();
   });
 
   // Inicializar
   actualizarMetricas();
-  console.log('[Paso 3] Motor listo.');
+  console.log('[Desarrollo] Todo listo. GRAFCET de prueba cargado.');
 });
