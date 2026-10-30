@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ELEE018PO · Bloque 9 · Empaquetadora</title>
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1>🏭 Estación Empaquetadora</h1>
+      <span class="badge">ELEE018PO · Bloque 9</span>
+    </div>
+    <div class="topbar-center">
+      <span id="cronometro" class="cronometro">⏱ 00:00</span>
+    </div>
+    <div class="topbar-right">
+      <span class="alumno">👤 Alumno</span>
+      <span id="puntuacion" class="puntuacion">Aciertos: 0 / 0</span>
+    </div>
+  </header>
+
+  <main class="dashboard">
+    <!-- Columna izquierda: paleta -->
+    <section class="panel panel-paleta">
+      <h2>🔧 Paleta GRAFCET</h2>
+      <p class="hint">Arrastra los elementos al lienzo (próximamente).</p>
+      <div class="paleta-item" data-tipo="etapa">○ Etapa</div>
+      <div class="paleta-item" data-tipo="transicion">→ Transición</div>
+      <div class="paleta-item" data-tipo="accion">▣ Acción</div>
+    </section>
+
+    <!-- Columna central: escena + editor -->
+    <section class="panel panel-centro">
+      <div class="bloque">
+        <h2>🏭 Escena</h2>
+        <div id="escena" class="escena"></div>
+      </div>
+      <div class="bloque">
+        <h2>🧩 Editor GRAFCET</h2>
+        <div id="editor" class="editor">
+          <p class="placeholder">Aquí aparecerá el lienzo GRAFCET (Paso 2).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Columna derecha: métricas -->
+    <section class="panel panel-metricas">
+      <h2>📊 Métricas</h2>
+      <ul class="metricas">
+        <li><span>Cajas contadas</span><strong id="m-cajas">0 / 10</strong></li>
+        <li><span>Ciclo actual</span><strong id="m-ciclo">E0</strong></li>
+        <li><span>Transiciones</span><strong id="m-trans">0</strong></li>
+        <li><span>Errores</span><strong id="m-errores">0</strong></li>
+        <li><span>Tiempo lote</span><strong id="m-tiempo">--</strong></li>
+      </ul>
+      <h3>Estado</h3>
+      <ul class="estado">
+        <li id="e-arranque">⏸ Arranque</li>
+        <li id="e-parada">⏸ Parada</li>
+        <li id="e-reinicio">⏸ Reinicio</li>
+        <li id="e-contador">⏸ Contador 10</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="toolbar">
+    <button id="btn-run" class="btn btn-primary">▶ RUN</button>
+    <button id="btn-pause" class="btn">⏸ PAUSE</button>
+    <button id="btn-stop" class="btn">⏹ STOP</button>
+    <button id="btn-reset" class="btn">🔄 RESET</button>
+    <button id="btn-paso" class="btn">⏭ PASO</button>
+    <span class="spacer"></span>
+    <button id="btn-entregar" class="btn btn-accent">📥 ENTREGAR</button>
+    <button id="btn-docente" class="btn btn-ghost">🔑 DOCENTE</button>
+  </footer>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
