@@ -15,6 +15,7 @@ export const IO = {
   lote_objetivo: 10,
   lote_completo: false,
   timer_cilindro: 0,
+  timer_check: 0,
 
   reset() {
     this.fotocelula = false;
@@ -25,5 +26,6 @@ export const IO = {
     this.contador = 0;
     this.timer_cilindro = 0;
     this.lote_completo = false;
+    this.timer_check = 0;
   }
 };

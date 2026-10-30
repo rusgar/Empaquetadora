@@ -119,7 +119,9 @@ export class GrafcetEngine {
           if (accion === 'cilindro=1') IO.cilindro_extendido = true;
           
           if (accion === 'contador+1' && !this.etapaAnterior.has(idEtapa)) {
-             IO.contador++;
+             if (IO.contador < IO.lote_objetivo) {
+                 IO.contador++;
+             }
           }
         });
       }
@@ -127,9 +129,10 @@ export class GrafcetEngine {
   }
 
   actualizarFisica(dt) {
-    // 1. Movimiento de la caja por la cinta
+    // 1. Movimiento de la caja por la cinta (MÁS LENTO)
+    // Antes era 120, ahora es 60
     if (IO.motor_cinta && !IO.caja_empujada && IO.caja_x < 340) {
-      IO.caja_x += 120 * dt; 
+      IO.caja_x += 60 * dt; 
       if (IO.caja_x >= 340) {
         IO.caja_x = 340;
         IO.fotocelula = true; 
@@ -138,21 +141,21 @@ export class GrafcetEngine {
         IO.fotocelula = false;
     }
 
-    // 2. Empuje del cilindro y TEMPORIZADOR
+    // 2. Empuje del cilindro (MÁS LENTO)
+    // Antes era 200, ahora es 100
     if (IO.cilindro_extendido) {
-       IO.timer_cilindro += dt; // El tiempo corre mientras el cilindro está fuera
-       
+       IO.timer_cilindro += dt; 
        if (IO.caja_x >= 300 && !IO.caja_empujada) {
-           IO.caja_x += 200 * dt; 
+           IO.caja_x += 100 * dt; 
            if (IO.caja_x > 520) {
              IO.caja_empujada = true; 
            }
        }
     } else {
-       IO.timer_cilindro = 0; // Si el cilindro se retrae, reseteamos el tiempo
+       IO.timer_cilindro = 0; 
     }
 
-    // 3. Reinicio del ciclo (Nueva caja)
+    // 3. Reinicio del ciclo (Nueva caja) y límite de 10
     if (!IO.cilindro_extendido && IO.caja_empujada) {
         if (IO.contador < IO.lote_objetivo) {
             IO.caja_empujada = false;
@@ -161,6 +164,8 @@ export class GrafcetEngine {
         } else {
             IO.motor_cinta = false;
             IO.lote_completo = true;
+            // Forzamos a que el cilindro se retraiga visualmente al terminar
+            IO.cilindro_extendido = false; 
         }
     }
   }

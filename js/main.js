@@ -31,23 +31,24 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // 5. TRUCO DE DESARROLLO: Cargar GRAFCET de prueba si está vacío
+    // 5. TRUCO DE DESARROLLO: Cargar GRAFCET de prueba si está vacío
   if (GrafcetModel.etapas.length === 0) {
-    const e1 = GrafcetModel.agregarEtapa(150, 200, true);
+    const e1 = GrafcetModel.agregarEtapa(100, 120, true);
     e1.acciones = ['motor_cinta=1'];
     
-    const e3 = GrafcetModel.agregarEtapa(350, 200, false);
+    const e3 = GrafcetModel.agregarEtapa(300, 120, false);
     e3.acciones = ['motor_cinta=0', 'cilindro=1'];
     
-    const e5 = GrafcetModel.agregarEtapa(550, 200, false);
+    const e5 = GrafcetModel.agregarEtapa(500, 120, false);
     e5.acciones = ['cilindro=0', 'contador+1'];
 
-    const t2 = GrafcetModel.agregarTransicion(250, 250);
+    const t2 = GrafcetModel.agregarTransicion(200, 170);
     t2.condicion = 'fotocelula==true';
     
-    const t4 = GrafcetModel.agregarTransicion(450, 250);
-    t4.condicion = 'timer_cilindro > 1.5';
+    const t4 = GrafcetModel.agregarTransicion(400, 170);
+    t4.condicion = 'timer_cilindro > 2.5';
     
-    const t6 = GrafcetModel.agregarTransicion(650, 250);
+    const t6 = GrafcetModel.agregarTransicion(600, 170);
     t6.condicion = 'contador<10';
 
     GrafcetModel.agregarConexion(e1.id, t2.id);

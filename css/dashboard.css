@@ -15,7 +15,9 @@
   grid-template-columns: 220px 1fr 260px;
   gap: .75rem;
   padding: .75rem;
-  height: calc(100vh - 120px);
+  /* Ajustamos la altura total restando el header y el footer */
+  height: calc(100vh - 110px); 
+  overflow: hidden;
 }
 
 .panel {
@@ -23,30 +25,44 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: .75rem;
-  overflow: auto;
+  overflow-y: auto;
 }
 
-.panel-centro { display: flex; flex-direction: column; gap: .75rem; }
+.panel-centro { 
+  display: flex; 
+  flex-direction: column; 
+  gap: .75rem; 
+  min-height: 0; 
+}
+
+/* LA ESCENA OCUPA EL 35% Y EL EDITOR EL 65% */
+.bloque-escena {
+  flex: 3.5; /* Proporción más pequeña */
+  min-height: 120px;
+}
+.bloque-editor {
+  flex: 6.5; /* Proporción más grande */
+  min-height: 250px;
+}
+
 .bloque {
   background: var(--bg-card);
   border-radius: var(--radius);
-  padding: .75rem;
-  flex: 1;
-  min-height: 0;
+  padding: .5rem;
   display: flex;
   flex-direction: column;
 }
+
 .escena, .editor {
   flex: 1;
-  min-height: 160px;
   border: 1px dashed var(--border);
   border-radius: var(--radius);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  position: relative;
 }
-.placeholder { color: var(--text-muted); font-style: italic; }
 
 .paleta-item {
   padding: .5rem .75rem;
@@ -54,7 +70,7 @@
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  cursor: grab;
+  cursor: pointer;
   user-select: none;
 }
 .paleta-item:hover { border-color: var(--accent); }
@@ -72,11 +88,14 @@
 .toolbar {
   position: fixed;
   bottom: 0; left: 0; right: 0;
+  height: 55px;
   display: flex;
+  align-items: center;
   gap: .5rem;
-  padding: .6rem 1rem;
+  padding: 0 1rem;
   background: var(--bg-panel);
   border-top: 1px solid var(--border);
+  z-index: 1000;
 }
 .spacer { flex: 1; }
 .btn {
@@ -92,5 +111,3 @@
 .btn-primary { background: var(--accent); color: #0f172a; border-color: var(--accent); font-weight: 600; }
 .btn-accent { background: var(--ok); color: #0f172a; border-color: var(--ok); font-weight: 600; }
 .btn-ghost { background: transparent; color: var(--text-muted); }
-
-.hint { color: var(--text-muted); font-size: .8rem; margin: 0 0 .75rem 0; }

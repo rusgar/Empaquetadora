@@ -1,30 +1,68 @@
-/* Estilos específicos del editor GRAFCET */
 #editor {
   position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background-color: #1e293b;
+  background-color: #0f172a; /* Fondo más oscuro para contraste */
   background-image: radial-gradient(#334155 1px, transparent 1px);
-  background-size: 20px 20px; /* Fondo de cuadrícula */
-  cursor: grab;
+  background-size: 20px 20px;
 }
-#editor:active { cursor: grabbing; }
 
-/* Elementos SVG */
 .nodo-svg { cursor: pointer; }
 .nodo-svg text { user-select: none; font-family: var(--font); pointer-events: none; }
-.etapa-svg circle { fill: #334155; stroke: #94a3b8; stroke-width: 2; transition: all 0.2s; }
-.etapa-svg.inicial circle { fill: #38bdf8; stroke: #0f172a; stroke-width: 3; }
-.etapa-svg:hover circle, .etapa-svg.selected circle { stroke: #38bdf8; stroke-width: 3; }
 
+/* ETAPAS */
+.etapa-svg circle { 
+  fill: #1e293b; 
+  stroke: #64748b; 
+  stroke-width: 3; 
+  transition: all 0.2s; 
+}
+.etapa-svg.inicial circle { fill: #38bdf8; stroke: #0ea5e9; }
+.etapa-svg:hover circle, .etapa-svg.selected circle { stroke: #f59e0b; stroke-width: 4; }
+
+/* ETAPA ACTIVA (Muy visible) */
+.etapa-svg.activa circle { 
+  fill: #22c55e !important; 
+  stroke: #bbf7d0 !important; 
+  stroke-width: 4 !important;
+  filter: drop-shadow(0 0 10px #22c55e);
+}
+.etapa-svg.activa text { fill: #000 !important; }
+
+/* TRANSICIONES */
 .transicion-svg rect { fill: #475569; stroke: #94a3b8; stroke-width: 2; transition: all 0.2s; }
 .transicion-svg:hover rect, .transicion-svg.selected rect { stroke: #f59e0b; stroke-width: 3; }
 
-.linea-conexion { stroke: #64748b; stroke-width: 2; fill: none; }
+/* LÍNEAS */
+.linea-conexion { stroke: #64748b; stroke-width: 3; fill: none; }
 .flecha-conexion { fill: #64748b; }
 
-/* Panel de propiedades flotante */
+/* TEXTOS DE ACCIONES Y CONDICIONES (Mucho más visibles) */
+.accion-texto {
+  font-size: 14px;
+  fill: #38bdf8;
+  font-family: monospace;
+  font-weight: bold;
+  text-anchor: start;
+  paint-order: stroke;
+  stroke: #0f172a;
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+.transicion-svg text.cond-text {
+  font-size: 14px;
+  fill: #fbbf24; /* Amarillo brillante */
+  font-family: monospace;
+  font-weight: bold;
+  paint-order: stroke;
+  stroke: #0f172a;
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+/* PANEL DE PROPIEDADES */
 .panel-propiedades {
   position: absolute;
   bottom: 10px; right: 10px;
@@ -33,22 +71,12 @@
   padding: 10px;
   border-radius: var(--radius);
   display: none;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.5);
   z-index: 100;
 }
 .panel-propiedades.activo { display: block; }
-.panel-propiedades label { display: block; margin-bottom: 5px; font-size: 0.8rem; color: var(--accent); }
+.panel-propiedades label { display: block; margin-bottom: 5px; font-size: 0.85rem; color: var(--accent); font-weight: bold;}
 .panel-propiedades input { 
-  width: 100%; padding: 4px; background: #000; color: #fff; 
-  border: 1px solid var(--border); border-radius: 4px; margin-bottom: 8px;
+  width: 100%; padding: 6px; background: #000; color: #fff; 
+  border: 1px solid var(--border); border-radius: 4px; margin-bottom: 8px; font-family: monospace;
 }
-.etapa-svg.inicial circle { 
-    fill: #38bdf8; 
-    stroke: #0f172a;
-     stroke-width: 3; 
-    }
-.etapa-svg.inicial.activa circle {
-     fill: #22c55e !important; 
-     stroke: #16a34a !important;
-      stroke-width: 3 !important; 
-    }
