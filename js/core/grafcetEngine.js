@@ -79,7 +79,8 @@ export class GrafcetEngine {
               motor_cinta: IO.motor_cinta,
               cilindro_extendido: IO.cilindro_extendido,
               contador: IO.contador,
-              timer_cilindro: IO.timer_cilindro // Nueva variable para las condiciones
+              timer_cilindro: IO.timer_cilindro,
+              caja_empujada: IO.caja_empujada, // Nueva variable para las condiciones
             };
             const evaluador = new Function(...Object.keys(context), `return ${t.condicion};`);
             resultado = evaluador(...Object.values(context));
@@ -129,8 +130,7 @@ export class GrafcetEngine {
   }
 
   actualizarFisica(dt) {
-    // 1. Movimiento de la caja por la cinta (MÁS LENTO)
-    // Antes era 120, ahora es 60
+    // 1. Movimiento de la caja por la cinta
     if (IO.motor_cinta && !IO.caja_empujada && IO.caja_x < 340) {
       IO.caja_x += 60 * dt; 
       if (IO.caja_x >= 340) {
@@ -141,30 +141,40 @@ export class GrafcetEngine {
         IO.fotocelula = false;
     }
 
-    // 2. Empuje del cilindro (MÁS LENTO)
-    // Antes era 200, ahora es 100
+    // 2. Empuje del cilindro y control del tiempo
     if (IO.cilindro_extendido) {
-       IO.timer_cilindro += dt; 
+       // Solo aumentamos el temporizador si la caja NO ha llegado al final
+       if (!IO.caja_empujada) {
+           IO.timer_cilindro += dt; 
+       }
+       
        if (IO.caja_x >= 300 && !IO.caja_empujada) {
            IO.caja_x += 100 * dt; 
            if (IO.caja_x > 520) {
              IO.caja_empujada = true; 
+             IO.timer_check = 1.0; // El check dura 1 segundo
            }
        }
     } else {
        IO.timer_cilindro = 0; 
     }
 
-    // 3. Reinicio del ciclo (Nueva caja) y límite de 10
-    if (!IO.cilindro_extendido && IO.caja_empujada) {
-        if (IO.contador < IO.lote_objetivo) {
+    // 3. Tiempo de visualización del Check
+    if (IO.timer_check > 0) {
+        IO.timer_check -= dt;
+        // Cuando el check termina, reiniciamos la caja
+        if (IO.timer_check <= 0 && IO.contador < IO.lote_objetivo) {
             IO.caja_empujada = false;
             IO.caja_x = 120; 
             IO.fotocelula = false;
-        } else {
+        }
+    }
+
+    // 4. Lógica de fin de lote
+    if (!IO.cilindro_extendido && IO.caja_empujada && IO.timer_check <= 0) {
+        if (IO.contador >= IO.lote_objetivo) {
             IO.motor_cinta = false;
             IO.lote_completo = true;
-            // Forzamos a que el cilindro se retraiga visualmente al terminar
             IO.cilindro_extendido = false; 
         }
     }
