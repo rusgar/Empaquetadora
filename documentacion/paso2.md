@@ -23,3 +23,8 @@ Implementar el lienzo de dibujo (SVG) donde el alumno construirá su secuencia.
 
 ## Siguiente paso
 Paso 3: El motor de simulación (Scan Cycle) que leerá este GRAFCET y moverá la escena.
+
+## Corrección de errores (Feedback del usuario)
+- Se ha corregido la lógica de arrastre. Ahora los eventos `mousemove` y `mouseup` se capturan a nivel de `document` para que el arrastre no se corte si el ratón sale del nodo.
+- Se ha separado el "clic simple" (para conectar nodos) del "arrastre" (para mover nodos) mediante un sistema de umbral de píxeles.
+- Se ha asegurado que el lienzo tenga un `tabindex` o tamaño mínimo para capturar clics.
