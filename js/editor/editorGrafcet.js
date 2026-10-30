@@ -4,6 +4,7 @@ export class EditorGrafcet {
   constructor(container, onUpdate) {
     this.container = container;
     this.onUpdate = onUpdate;
+    this.etapasActivas = new Set();
     
     // Crear SVG base
     this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -27,12 +28,10 @@ export class EditorGrafcet {
   }
 
   initEventos() {
-    // Capturamos el movimiento a nivel de documento para que no falle
-    // si el ratón se sale del lienzo mientras arrastramos.
     document.addEventListener('mousemove', (e) => {
       if (this.isDragging && this.dragTarget) {
         const pt = this.getMousePos(e);
-        // Si se mueve más de 3 píxeles, consideramos que es un arrastre real
+        // Umbral de 3 píxeles para diferenciar clic de arrastre
         if (Math.abs(pt.x - this.startX) > 3 || Math.abs(pt.y - this.startY) > 3) {
           this.hasMoved = true;
         }
@@ -46,7 +45,6 @@ export class EditorGrafcet {
     });
 
     document.addEventListener('mouseup', () => {
-      // Al soltar, si no se ha movido, es un clic (seleccionar/conectar)
       if (this.isDragging && !this.hasMoved && this.dragTarget) {
         this.seleccionarNodo(this.dragTarget.id);
       }
@@ -55,7 +53,6 @@ export class EditorGrafcet {
       this.hasMoved = false;
     });
 
-    // Deseleccionar si se hace clic en el fondo del lienzo
     this.svg.addEventListener('mousedown', (e) => {
       if (e.target === this.svg) {
         this.elementoSeleccionado = null;
@@ -66,8 +63,6 @@ export class EditorGrafcet {
   }
 
   getMousePos(evt) {
-    // Usamos getBoundingClientRect para calcular la posición exacta
-    // relativa al SVG, independientemente del scroll o bordes.
     const rect = this.svg.getBoundingClientRect();
     return {
       x: evt.clientX - rect.left,
@@ -76,7 +71,6 @@ export class EditorGrafcet {
   }
 
   agregarElemento(tipo) {
-    // Los añadimos un poco alejados del centro para que no se superpongan
     const cx = this.container.clientWidth / 2 + (Math.random() * 100 - 50);
     const cy = this.container.clientHeight / 2 + (Math.random() * 100 - 50);
 
@@ -90,21 +84,17 @@ export class EditorGrafcet {
 
   seleccionarNodo(id) {
     if (!this.elementoSeleccionado) {
-      // Primer clic: seleccionar
       this.elementoSeleccionado = id;
     } else {
-      // Segundo clic: intentar conectar
       const el1 = GrafcetModel.getElemento(this.elementoSeleccionado);
       const el2 = GrafcetModel.getElemento(id);
 
       if (el1 && el2 && el1.type !== el2.type) {
-        // Si son de distinto tipo, conectamos (Etapa->Transición o Transición->Etapa)
         if (GrafcetModel.agregarConexion(el1.id, el2.id)) {
           console.log(`Conexión creada: ${el1.id} -> ${el2.id}`);
         }
-        this.elementoSeleccionado = null; // Limpiar selección tras conectar
+        this.elementoSeleccionado = null;
       } else {
-        // Si son del mismo tipo o el mismo, cambiamos la selección
         this.elementoSeleccionado = (this.elementoSeleccionado === id) ? null : id;
       }
     }
@@ -134,21 +124,37 @@ export class EditorGrafcet {
       panel.innerHTML = `
         <label>Condición de Transición (${el.id})</label>
         <input type="text" id="input-cond" value="${el.condicion}">
+        <p style="font-size:0.7rem; color:#94a3b8; margin-top:5px;">Ej: fotocelula==true</p>
       `;
-      // Evitar que el input cierre la selección al hacer clic
       panel.onmousedown = (e) => e.stopPropagation(); 
       
       document.getElementById('input-cond').addEventListener('input', (e) => {
         el.condicion = e.target.value;
+        this.render(); // Para actualizar el texto en el lienzo
         this.onUpdate();
       });
     } else {
+      // Panel de Edición de Acciones para Etapas
       panel.innerHTML = `
-        <label>Etapa (${el.id}) - ${el.inicial ? 'INICIAL' : ''}</label>
-        <p style="font-size:0.75rem; color:#94a3b8;">Haz clic en una transición para conectarla.</p>
+        <label>Acciones de Etapa (${el.id})</label>
+        <input type="text" id="input-accion" placeholder="Ej: motor_cinta=1" value="${el.acciones ? el.acciones.join(', ') : ''}">
+        <p style="font-size:0.7rem; color:#94a3b8; margin-top:5px;">Separa múltiples acciones por coma.</p>
       `;
       panel.onmousedown = (e) => e.stopPropagation();
+      
+      document.getElementById('input-accion').addEventListener('input', (e) => {
+        // Convertir string "motor_cinta=1, cilindro=1" a array
+        el.acciones = e.target.value.split(',').map(s => s.trim()).filter(s => s !== '');
+        this.render(); // Para dibujar el texto al lado
+        this.onUpdate();
+      });
     }
+  }
+
+  // NUEVO MÉTODO: Para pintar las etapas de verde
+  setEtapasActivas(set) {
+    this.etapasActivas = set;
+    this.render();
   }
 
   render() {
@@ -182,21 +188,41 @@ export class EditorGrafcet {
     // 2. Dibujar Etapas
     GrafcetModel.etapas.forEach(etapa => {
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      // Centramos el nodo en el cursor usando translate
       g.setAttribute('transform', `translate(${etapa.x}, ${etapa.y})`);
-      g.setAttribute('class', `nodo-svg etapa-svg ${etapa.inicial ? 'inicial' : ''} ${this.elementoSeleccionado === etapa.id ? 'selected' : ''}`);
+      
+      const estaActiva = this.etapasActivas.has(etapa.id);
+      
+      g.setAttribute('class', `nodo-svg etapa-svg ${etapa.inicial ? 'inicial' : ''} ${this.elementoSeleccionado === etapa.id ? 'selected' : ''} ${estaActiva ? 'activa' : ''}`);
       
       const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      circle.setAttribute('r', '18'); // Un poco más grande para clicar fácil
+      circle.setAttribute('r', '18');
       g.appendChild(circle);
 
       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       text.setAttribute('text-anchor', 'middle');
       text.setAttribute('dy', '5');
-      text.setAttribute('fill', etapa.inicial ? '#000' : '#fff');
+      // El texto es negro si está activa o es inicial, blanco si no
+      text.setAttribute('fill', (etapa.inicial || estaActiva) ? '#000' : '#fff');
       text.setAttribute('font-weight', 'bold');
       text.textContent = etapa.id;
       g.appendChild(text);
+
+      // Dibujar las acciones a la derecha de la etapa
+      if (etapa.acciones && etapa.acciones.length > 0) {
+        const textAcciones = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        textAcciones.setAttribute('x', '25');
+        textAcciones.setAttribute('y', '0');
+        textAcciones.setAttribute('class', 'accion-texto');
+        
+        etapa.acciones.forEach((acc, i) => {
+            const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+            tspan.setAttribute('x', '25');
+            tspan.setAttribute('dy', i === 0 ? '0' : '1.2em');
+            tspan.textContent = acc;
+            textAcciones.appendChild(tspan);
+        });
+        g.appendChild(textAcciones);
+      }
 
       this.attachEvents(g, etapa);
       this.svg.appendChild(g);
@@ -224,6 +250,18 @@ export class EditorGrafcet {
       text.textContent = trans.id;
       g.appendChild(text);
 
+      // Mostrar la condición al lado de la transición (si no es TRUE)
+      if (trans.condicion && trans.condicion !== 'TRUE') {
+        const textCond = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        textCond.setAttribute('x', '-25');
+        textCond.setAttribute('y', '-12');
+        textCond.setAttribute('fill', '#f59e0b');
+        textCond.setAttribute('font-size', '11');
+        textCond.setAttribute('font-family', 'monospace');
+        textCond.textContent = trans.condicion;
+        g.appendChild(textCond);
+      }
+
       this.attachEvents(g, trans);
       this.svg.appendChild(g);
     });
@@ -231,8 +269,8 @@ export class EditorGrafcet {
 
   attachEvents(g, elemento) {
     g.addEventListener('mousedown', (e) => {
-      e.stopPropagation(); // Evita que se active el clic en el fondo
-      e.preventDefault(); // Evita selección de texto no deseada
+      e.stopPropagation();
+      e.preventDefault();
       
       this.isDragging = true;
       this.hasMoved = false;
@@ -242,7 +280,6 @@ export class EditorGrafcet {
       this.startX = pt.x;
       this.startY = pt.y;
 
-      // Guardamos el offset para que el nodo no salte al centro del ratón
       this.offsetX = pt.x - elemento.x;
       this.offsetY = pt.y - elemento.y;
     });

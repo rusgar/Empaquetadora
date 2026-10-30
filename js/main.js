@@ -1,7 +1,9 @@
-import { renderEmpaquetadora } from './scenes/empaquetadora.js';
+import { renderEmpaquetadora, updateEmpaquetadora } from './scenes/empaquetadora.js';
 import { crearCronometro } from './ui/cronometro.js';
 import { EditorGrafcet } from './editor/editorGrafcet.js';
 import { GrafcetModel } from './core/grafcetModel.js';
+import { GrafcetEngine } from './core/grafcetEngine.js';
+import { IO } from './core/ioModel.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Escena
@@ -13,47 +15,72 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 3. Editor GRAFCET
   const editorContainer = document.getElementById('editor');
-  // Quitamos el placeholder
   editorContainer.innerHTML = ''; 
   
   const editor = new EditorGrafcet(editorContainer, () => {
     actualizarMetricas();
   });
 
-  // 4. Conectar Paleta con Editor
+  // 4. Motor de Simulación
+  const engine = new GrafcetEngine();
+  
+  // Suscribirse a las actualizaciones del motor
+  engine.onUpdate(() => {
+    editor.setEtapasActivas(engine.etapasActivas);
+    updateEmpaquetadora();
+    actualizarMetricas();
+  });
+
+  // 5. Conectar Paleta
   document.querySelectorAll('.paleta-item').forEach(item => {
     item.addEventListener('click', () => {
       const tipo = item.getAttribute('data-tipo');
-      if (tipo !== 'accion') { // La acción la trataremos más adelante
+      if (tipo !== 'accion') {
         editor.agregarElemento(tipo);
         actualizarMetricas();
       }
     });
   });
 
-  // 5. Actualizar métricas básicas
+  // 6. Actualizar métricas
   function actualizarMetricas() {
     document.getElementById('m-trans').textContent = GrafcetModel.transiciones.length;
-    // En el futuro calcularemos la etapa activa real
-    document.getElementById('m-ciclo').textContent = GrafcetModel.etapas.length > 0 ? GrafcetModel.etapas[0].id : '--';
+    
+    // Mostrar etapas activas
+    const activasStr = Array.from(engine.etapasActivas).join(', ');
+    document.getElementById('m-ciclo').textContent = activasStr || '--';
+    
+    // Contador
+    document.getElementById('m-cajas').textContent = `${IO.contador} / ${IO.lote_objetivo}`;
+    
+    // Estados de validación (se irán afinando)
+    document.getElementById('e-arranque').innerHTML = engine.enEjecucion ? '✅ Arranque' : '⏸ Arranque';
   }
 
-  // 6. Botones de la barra inferior
-  const acciones = {
-    'btn-run': 'RUN',
-    'btn-pause': 'PAUSE',
-    'btn-stop': 'STOP',
-    'btn-reset': 'RESET',
-    'btn-paso': 'PASO',
-    'btn-entregar': 'ENTREGAR',
-    'btn-docente': 'DOCENTE',
-  };
-  Object.entries(acciones).forEach(([id, nombre]) => {
-    const btn = document.getElementById(id);
-    if (btn) btn.addEventListener('click', () => {
-      console.log(`[Paso 2] Botón pulsado: ${nombre}`);
-    });
+  // 7. Botones
+  document.getElementById('btn-run').addEventListener('click', () => {
+    engine.start();
+    actualizarMetricas();
+  });
+  
+  document.getElementById('btn-pause').addEventListener('click', () => {
+    engine.pause();
   });
 
-  console.log('[Paso 2] Editor GRAFCET cargado.');
+  document.getElementById('btn-stop').addEventListener('click', () => {
+    engine.stop();
+    actualizarMetricas();
+  });
+
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    engine.reset();
+    IO.reset();
+    editor.setEtapasActivas(new Set()); // Limpiar visual
+    updateEmpaquetadora();
+    actualizarMetricas();
+  });
+
+  // Inicializar
+  actualizarMetricas();
+  console.log('[Paso 3] Motor listo.');
 });
