@@ -23,6 +23,7 @@ export const IO = {
     this.caja_x = 120;
     this.caja_empujada = false;
     this.contador = 0;
+    this.timer_cilindro = 0;
     this.lote_completo = false;
   }
 };
