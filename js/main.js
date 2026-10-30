@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     t2.condicion = 'fotocelula==true';
     
     const t4 = GrafcetModel.agregarTransicion(400, 170);
-     t4.condicion = 'check_caja == false && caja_empujada == true'; 
+     t4.condicion = 'timer_check == 0'; 
     
     const t6 = GrafcetModel.agregarTransicion(600, 170);
     t6.condicion = 'contador<10';

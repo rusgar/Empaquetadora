@@ -21,7 +21,7 @@ export class GrafcetEngine {
       this.etapasActivas.clear();
       this.etapasActivas.add(inicial.id);
       this.etapaAnterior = new Set(this.etapasActivas);
-      IO.timer_cilindro = 0; // Reiniciar timer
+      IO.timer_cilindro = 0;
     }
   }
 
@@ -81,7 +81,8 @@ export class GrafcetEngine {
               contador: IO.contador,
               timer_cilindro: IO.timer_cilindro,
               caja_empujada: IO.caja_empujada,
-              check_caja: IO.timer_check > 0 // Nueva variable para las condiciones
+              check_caja: IO.timer_check > 0,
+              timer_check: IO.timer_check
             };
             const evaluador = new Function(...Object.keys(context), `return ${t.condicion};`);
             resultado = evaluador(...Object.values(context));
@@ -102,6 +103,14 @@ export class GrafcetEngine {
     if (huboCambio) {
       this.etapaAnterior = new Set(this.etapasActivas);
       this.etapasActivas = nuevasEtapas;
+      
+      if (this.etapasActivas.has('E1')) {
+          IO.caja_empujada = false;
+          IO.caja_x = 120; 
+          IO.fotocelula = false;
+          IO.timer_check = 0;
+      }
+
       this.actualizarSalidas();
       this.emit();
     }
@@ -129,11 +138,10 @@ export class GrafcetEngine {
       }
     });
   }
-
   actualizarFisica(dt) {
-    // 1. Movimiento de la caja por la cinta
+    // 1. Movimiento de la caja (MUY LENTO PARA VER EL MOVIMIENTO)
     if (IO.motor_cinta && !IO.caja_empujada && IO.caja_x < 340) {
-      IO.caja_x += 60 * dt; 
+      IO.caja_x += 5 * dt; // Velocidad de tortuga
       if (IO.caja_x >= 340) {
         IO.caja_x = 340;
         IO.fotocelula = true; 
@@ -142,42 +150,36 @@ export class GrafcetEngine {
         IO.fotocelula = false;
     }
 
-    // 2. Empuje del cilindro y control del tiempo
+    // 2. Empuje del cilindro
     if (IO.cilindro_extendido) {
-       // Solo aumentamos el temporizador si la caja NO ha llegado al final
-       if (!IO.caja_empujada) {
-           IO.timer_cilindro += dt; 
-       }
-       
+       IO.timer_cilindro += dt; 
        if (IO.caja_x >= 300 && !IO.caja_empujada) {
-           IO.caja_x += 100 * dt; 
+           IO.caja_x += 15 * dt; // Empuje lento
            if (IO.caja_x > 520) {
+             IO.caja_x = 520;
              IO.caja_empujada = true; 
-             IO.timer_check = 1.0; // El check dura 1 segundo
+             IO.timer_check = 2.0; // El check dura 2 segundos
            }
        }
     } else {
        IO.timer_cilindro = 0; 
     }
 
-    // 3. Tiempo de visualización del Check
+    // 3. Check de caja
     if (IO.timer_check > 0) {
         IO.timer_check -= dt;
-        // Cuando el check termina, reiniciamos la caja
-        if (IO.timer_check <= 0 && IO.contador < IO.lote_objetivo) {
-            IO.caja_empujada = false;
-            IO.caja_x = 120; 
-            IO.fotocelula = false;
-        }
     }
 
-    // 4. Lógica de fin de lote
-    if (!IO.cilindro_extendido && IO.caja_empujada && IO.timer_check <= 0) {
+    // 4. Fin de lote: Congelar 3 segundos al terminar
+    if (IO.lote_completo && IO.timer_check > 0) {
+        // Congelado
+    } else if (!IO.cilindro_extendido && IO.caja_empujada && IO.timer_check <= 0) {
         if (IO.contador >= IO.lote_objetivo) {
             IO.motor_cinta = false;
             IO.lote_completo = true;
-            IO.cilindro_extendido = false; 
+            IO.timer_check = 3.0;
         }
     }
   }
+  
 }

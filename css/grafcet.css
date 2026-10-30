@@ -52,14 +52,16 @@
 }
 
 .transicion-svg text.cond-text {
-  font-size: 14px;
-  fill: #fbbf24; /* Amarillo brillante */
+  font-size: 13px;
+  fill: #fbbf24; 
   font-family: monospace;
   font-weight: bold;
   paint-order: stroke;
   stroke: #0f172a;
   stroke-width: 4px;
   stroke-linejoin: round;
+  /* Ajuste para que no pise la línea */
+  transform: translateY(-12px); 
 }
 
 /* PANEL DE PROPIEDADES */
