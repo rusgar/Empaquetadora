@@ -1,8 +1,6 @@
-// Modelo de E/S de la escena. Por ahora solo define variables;
-// la lógica de actualización llega en el Paso 3 (motor + escena animada).
 export const IO = {
   // Entradas
-  fotocelula: false,        // Caja detectada por la fotocélula
+  fotocelula: false,        
   
   // Salidas (las controla el GRAFCET)
   motor_cinta: false,
@@ -10,12 +8,13 @@ export const IO = {
   
   // Variables Físicas para la animación
   caja_x: 120,              // Posición X de la caja en la cinta
-  caja_empujada: false,     // Si ya está en la bandeja
+  caja_empujada: false,     // IMPORTANTE: Debe empezar en FALSE
   
   // Contadores
   contador: 0,
   lote_objetivo: 10,
   lote_completo: false,
+  timer_cilindro: 0,
 
   reset() {
     this.fotocelula = false;

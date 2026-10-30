@@ -4,6 +4,7 @@ import { IO } from './ioModel.js';
 export class GrafcetEngine {
   constructor() {
     this.etapasActivas = new Set();
+    this.etapaAnterior = new Set();
     this.intervalo = null;
     this.ultimoTiempo = 0;
     this.enEjecucion = false;
@@ -19,6 +20,8 @@ export class GrafcetEngine {
     if (inicial) {
       this.etapasActivas.clear();
       this.etapasActivas.add(inicial.id);
+      this.etapaAnterior = new Set(this.etapasActivas);
+      IO.timer_cilindro = 0; // Reiniciar timer
     }
   }
 
@@ -30,7 +33,6 @@ export class GrafcetEngine {
     this.pausado = false;
     this.ultimoTiempo = performance.now();
     
-    // Forzamos actualización instantánea
     this.actualizarSalidas();
     this.emit();
 
@@ -76,7 +78,8 @@ export class GrafcetEngine {
               fotocelula: IO.fotocelula,
               motor_cinta: IO.motor_cinta,
               cilindro_extendido: IO.cilindro_extendido,
-              contador: IO.contador
+              contador: IO.contador,
+              timer_cilindro: IO.timer_cilindro // Nueva variable para las condiciones
             };
             const evaluador = new Function(...Object.keys(context), `return ${t.condicion};`);
             resultado = evaluador(...Object.values(context));
@@ -95,6 +98,7 @@ export class GrafcetEngine {
     });
 
     if (huboCambio) {
+      this.etapaAnterior = new Set(this.etapasActivas);
       this.etapasActivas = nuevasEtapas;
       this.actualizarSalidas();
       this.emit();
@@ -109,18 +113,21 @@ export class GrafcetEngine {
 
     this.etapasActivas.forEach(idEtapa => {
       const etapa = GrafcetModel.getElemento(idEtapa);
-      // AQUÍ LEEMOS LO QUE EL ALUMNO ESCRIBE EN EL PANEL
       if (etapa && etapa.acciones) {
         etapa.acciones.forEach(accion => {
           if (accion === 'motor_cinta=1') IO.motor_cinta = true;
           if (accion === 'cilindro=1') IO.cilindro_extendido = true;
-          if (accion === 'contador+1') IO.contador++; 
+          
+          if (accion === 'contador+1' && !this.etapaAnterior.has(idEtapa)) {
+             IO.contador++;
+          }
         });
       }
     });
   }
 
   actualizarFisica(dt) {
+    // 1. Movimiento de la caja por la cinta
     if (IO.motor_cinta && !IO.caja_empujada && IO.caja_x < 340) {
       IO.caja_x += 120 * dt; 
       if (IO.caja_x >= 340) {
@@ -131,11 +138,30 @@ export class GrafcetEngine {
         IO.fotocelula = false;
     }
 
-    if (IO.cilindro_extendido && IO.caja_x >= 300 && !IO.caja_empujada) {
-       IO.caja_x += 200 * dt; 
-       if (IO.caja_x > 520) {
-         IO.caja_empujada = true; 
+    // 2. Empuje del cilindro y TEMPORIZADOR
+    if (IO.cilindro_extendido) {
+       IO.timer_cilindro += dt; // El tiempo corre mientras el cilindro está fuera
+       
+       if (IO.caja_x >= 300 && !IO.caja_empujada) {
+           IO.caja_x += 200 * dt; 
+           if (IO.caja_x > 520) {
+             IO.caja_empujada = true; 
+           }
        }
+    } else {
+       IO.timer_cilindro = 0; // Si el cilindro se retrae, reseteamos el tiempo
+    }
+
+    // 3. Reinicio del ciclo (Nueva caja)
+    if (!IO.cilindro_extendido && IO.caja_empujada) {
+        if (IO.contador < IO.lote_objetivo) {
+            IO.caja_empujada = false;
+            IO.caja_x = 120; 
+            IO.fotocelula = false;
+        } else {
+            IO.motor_cinta = false;
+            IO.lote_completo = true;
+        }
     }
   }
 }
