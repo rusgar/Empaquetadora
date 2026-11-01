@@ -1,10 +1,6 @@
 .topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: .6rem 1rem;
-  background: var(--bg-panel);
-  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .6rem 1rem; background: var(--bg-panel); border-bottom: 1px solid var(--border);
 }
 .topbar-left, .topbar-right { display: flex; align-items: center; gap: .75rem; }
 .cronometro { font-variant-numeric: tabular-nums; font-size: 1.1rem; color: var(--accent); }
@@ -15,98 +11,47 @@
   grid-template-columns: 220px 1fr 260px;
   gap: .75rem;
   padding: .75rem;
-  /* Ajustamos la altura total restando el header y el footer */
-  height: calc(100vh - 110px); 
+  height: calc(100vh - 110px); /* Ajuste para el footer */
   overflow: hidden;
 }
 
 .panel {
-  background: var(--bg-panel);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: .75rem;
-  overflow-y: auto;
+  background: var(--bg-panel); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: .75rem; overflow-y: auto;
 }
 
-.panel-centro { 
-  display: flex; 
-  flex-direction: column; 
-  gap: .75rem; 
-  min-height: 0; 
-}
+.panel-centro { display: flex; flex-direction: column; gap: .75rem; min-height: 0; }
 
-/* LA ESCENA OCUPA EL 35% Y EL EDITOR EL 65% */
-.bloque-escena {
-  flex: 4.5; /* Más altura para la vista isométrica */
-  min-height: 250px;
-}
-.bloque-editor {
-  flex: 5.5; 
-  min-height: 250px;
-}
+/* Escena ocupa 40%, Editor 60% */
+.bloque-escena { flex: 4; min-height: 200px; }
+.bloque-editor { flex: 6; min-height: 300px; }
 
 .bloque {
-  background: var(--bg-card);
-  border-radius: var(--radius);
-  padding: .5rem;
-  display: flex;
-  flex-direction: column;
+  background: var(--bg-card); border-radius: var(--radius);
+  padding: .5rem; display: flex; flex-direction: column;
 }
 
 .escena, .editor {
-  flex: 1;
-  border: 1px dashed var(--border);
-  border-radius: var(--radius);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  position: relative;
+  flex: 1; border: 1px dashed var(--border); border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; position: relative;
 }
 
-.paleta-item {
-  padding: .5rem .75rem;
-  margin-bottom: .4rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  cursor: pointer;
-  user-select: none;
-}
+/* ... resto del CSS igual ... */
+.paleta-item { padding: .5rem .75rem; margin-bottom: .4rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; user-select: none; }
 .paleta-item:hover { border-color: var(--accent); }
-
 .metricas, .estado { list-style: none; padding: 0; margin: 0 0 1rem 0; }
-.metricas li, .estado li {
-  display: flex;
-  justify-content: space-between;
-  padding: .35rem 0;
-  border-bottom: 1px solid var(--border);
-}
+.metricas li, .estado li { display: flex; justify-content: space-between; padding: .35rem 0; border-bottom: 1px solid var(--border); }
 .metricas span { color: var(--text-muted); }
 .estado li { justify-content: flex-start; gap: .5rem; }
 
 .toolbar {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  height: 55px;
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  padding: 0 1rem;
-  background: var(--bg-panel);
-  border-top: 1px solid var(--border);
-  z-index: 1000;
+  position: fixed; bottom: 0; left: 0; right: 0; height: 55px;
+  display: flex; align-items: center; gap: .5rem; padding: 0 1rem;
+  background: var(--bg-panel); border-top: 1px solid var(--border); z-index: 1000;
 }
 .spacer { flex: 1; }
-.btn {
-  padding: .45rem .9rem;
-  background: var(--bg-card);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  cursor: pointer;
-  font-family: inherit;
-}
+.btn { padding: .45rem .9rem; background: var(--bg-card); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; font-family: inherit; }
 .btn:hover { border-color: var(--accent); }
 .btn-primary { background: var(--accent); color: #0f172a; border-color: var(--accent); font-weight: 600; }
 .btn-accent { background: var(--ok); color: #0f172a; border-color: var(--ok); font-weight: 600; }

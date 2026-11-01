@@ -28,11 +28,9 @@ export class GrafcetEngine {
   start() {
     if (this.enEjecucion) return;
     if (this.etapasActivas.size === 0) this.init();
-    
     this.enEjecucion = true;
     this.pausado = false;
     this.ultimoTiempo = performance.now();
-    
     this.actualizarSalidas();
     this.emit();
 
@@ -46,77 +44,74 @@ export class GrafcetEngine {
   }
 
   pause() { this.pausado = !this.pausado; }
-
-  stop() {
-    this.enEjecucion = false;
-    this.pausado = false;
-    clearInterval(this.intervalo);
-    IO.motor_cinta = false;
-    IO.cilindro_extendido = false;
-    this.emit();
-  }
-
-  reset() {
-    this.stop();
-    this.init();
-    this.actualizarSalidas();
-    this.emit();
-  }
+  stop() { this.enEjecucion = false; this.pausado = false; clearInterval(this.intervalo); IO.motor_cinta = false; IO.cilindro_extendido = false; this.emit(); }
+  reset() { this.stop(); this.init(); this.actualizarSalidas(); this.emit(); }
 
   ciclo(deltaTime) {
+    // Si ya hemos procesado 10 cajas, no hacemos nada más
+    if (IO.contador1 + IO.contador2 >= IO.lote_objetivo) {
+        IO.lote_completo = true;
+        IO.motor_cinta = false;
+        IO.cilindro_extendido = false;
+    }
+
     let nuevasEtapas = new Set(this.etapasActivas);
     let huboCambio = false;
 
-    GrafcetModel.transiciones.forEach(t => {
-      const conexionOrigen = GrafcetModel.conexiones.find(c => c.destinoId === t.id && this.etapasActivas.has(c.origenId));
-      
-      if (conexionOrigen) {
-        let resultado = false;
-        if (t.condicion && t.condicion.trim() !== '') {
-          try {
-            const context = {
-              fotocelula: IO.fotocelula,
-              caja_grande: IO.caja_grande,
-              motor_cinta: IO.motor_cinta,
-              cilindro_extendido: IO.cilindro_extendido,
-              contador1: IO.contador1,
-              contador2: IO.contador2,
-              timer_cilindro: IO.timer_cilindro,
-              caja_empujada: IO.caja_empujada
-            };
-            const evaluador = new Function(...Object.keys(context), `return ${t.condicion};`);
-            resultado = evaluador(...Object.values(context));
-          } catch (e) {
-            console.warn(`Error en condición de ${t.id}: ${e.message}`);
-          }
-        }
+    if (!IO.lote_completo) {
+        GrafcetModel.transiciones.forEach(t => {
+        const conexionOrigen = GrafcetModel.conexiones.find(c => c.destinoId === t.id && this.etapasActivas.has(c.origenId));
+        
+        if (conexionOrigen) {
+            let resultado = false;
+            if (t.condicion && t.condicion.trim() !== '') {
+            try {
+                const context = {
+                fotocelula: IO.fotocelula,
+                caja_grande: IO.caja_grande,
+                motor_cinta: IO.motor_cinta,
+                cilindro_extendido: IO.cilindro_extendido,
+                contador1: IO.contador1,
+                contador2: IO.contador2,
+                timer_cilindro: IO.timer_cilindro,
+                caja_empujada: IO.caja_empujada
+                };
+                const evaluador = new Function(...Object.keys(context), `return ${t.condicion};`);
+                resultado = evaluador(...Object.values(context));
+            } catch (e) {
+                console.warn(`Error en condición de ${t.id}: ${e.message}`);
+            }
+            }
 
-        if (resultado === true) {
-          nuevasEtapas.delete(conexionOrigen.origenId);
-          const conexionesDestino = GrafcetModel.conexiones.filter(c => c.origenId === t.id);
-          conexionesDestino.forEach(cd => nuevasEtapas.add(cd.destinoId));
-          huboCambio = true;
+            if (resultado === true) {
+            nuevasEtapas.delete(conexionOrigen.origenId);
+            const conexionesDestino = GrafcetModel.conexiones.filter(c => c.origenId === t.id);
+            conexionesDestino.forEach(cd => nuevasEtapas.add(cd.destinoId));
+            huboCambio = true;
+            }
         }
-      }
-    });
+        });
+    }
 
     if (huboCambio) {
       this.etapaAnterior = new Set(this.etapasActivas);
       this.etapasActivas = nuevasEtapas;
       
-      // Si entramos en E1 (inicio de ciclo), generamos caja nueva
+      // Al entrar en E1 (nueva caja)
       if (this.etapasActivas.has('E1')) {
           IO.caja_empujada = false;
           IO.caja_x = 120; 
           IO.fotocelula = false;
-          IO.caja_grande = Math.random() > 0.5; // 50% grande, 50% pequeña
+          IO.caja_grande = Math.random() > 0.5; // Aleatorio
       }
 
       this.actualizarSalidas();
       this.emit();
     }
 
-    this.actualizarFisica(deltaTime);
+    if (!IO.lote_completo) {
+        this.actualizarFisica(deltaTime);
+    }
   }
 
   actualizarSalidas() {
@@ -131,10 +126,10 @@ export class GrafcetEngine {
           if (accion === 'cilindro=1') IO.cilindro_extendido = true;
           
           if (accion === 'contador1+1' && !this.etapaAnterior.has(idEtapa)) {
-             IO.contador1++;
+             if (IO.contador1 + IO.contador2 < IO.lote_objetivo) IO.contador1++;
           }
           if (accion === 'contador2+1' && !this.etapaAnterior.has(idEtapa)) {
-             IO.contador2++;
+             if (IO.contador1 + IO.contador2 < IO.lote_objetivo) IO.contador2++;
           }
         });
       }
@@ -142,7 +137,6 @@ export class GrafcetEngine {
   }
 
   actualizarFisica(dt) {
-    // 1. Movimiento de la caja
     if (IO.motor_cinta && !IO.caja_empujada && IO.caja_x < 340) {
       IO.caja_x += 60 * dt; 
       if (IO.caja_x >= 340) {
@@ -153,7 +147,6 @@ export class GrafcetEngine {
         IO.fotocelula = false;
     }
 
-    // 2. Empuje del cilindro (solo si la caja es grande)
     if (IO.cilindro_extendido && IO.caja_grande) {
        IO.timer_cilindro += dt; 
        if (IO.caja_x >= 300 && !IO.caja_empujada) {
@@ -168,7 +161,6 @@ export class GrafcetEngine {
        IO.timer_cilindro = 0; 
     }
 
-    // 3. Check
     if (IO.timer_check > 0) {
         IO.timer_check -= dt;
     }

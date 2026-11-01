@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // GRAFCET DE PRUEBA (Bifurcación)
   if (GrafcetModel.etapas.length === 0) {
     // Inicio
-    const e1 = GrafcetModel.agregarEtapa(100, 150, true);
+    const e1 = GrafcetModel.agregarEtapa(100, 100, true);
     e1.acciones = ['motor_cinta=1'];
     
     // Caja Grande
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Caja Pequeña
     const t6 = GrafcetModel.agregarTransicion(200, 200);
     t6.condicion = 'fotocelula==true && caja_grande==false';
-    const e7 = GrafcetModel.agregarEtapa(300, 250, false);
+    const e7 = GrafcetModel.agregarEtapa(300, 150, false);
     e7.acciones = ['motor_cinta=1'];
     const t8 = GrafcetModel.agregarTransicion(400, 200);
     t8.condicion = 'fotocelula==true'; // Simplificación
@@ -78,13 +78,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  function actualizarMetricas() {
+function actualizarMetricas() {
     document.getElementById('m-trans').textContent = GrafcetModel.transiciones.length;
     const activasStr = Array.from(engine.etapasActivas).join(', ');
     document.getElementById('m-ciclo').textContent = activasStr || '--';
     
-    // Actualizamos los dos contadores
-    document.getElementById('m-cajas').innerHTML = `C1: ${IO.contador1} | C2: ${IO.contador2}`;
+    // Suma total de cajas
+    const totalCajas = IO.contador1 + IO.contador2;
+    document.getElementById('m-cajas').innerHTML = `C1: ${IO.contador1} | C2: ${IO.contador2} (<b>${totalCajas}/10</b>)`;
     
     if (engine.enEjecucion) {
       document.getElementById('e-arranque').innerHTML = '✅ Arranque';
@@ -92,6 +93,14 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       document.getElementById('e-arranque').innerHTML = '⏸ Arranque';
       document.getElementById('e-arranque').style.color = 'var(--text-muted)';
+    }
+
+    if (IO.lote_completo) {
+      document.getElementById('e-contador').innerHTML = '✅ Lote completo';
+      document.getElementById('e-contador').style.color = 'var(--ok)';
+    } else {
+      document.getElementById('e-contador').innerHTML = '⏸ En proceso';
+      document.getElementById('e-contador').style.color = 'var(--text-muted)';
     }
   }
 
