@@ -21,23 +21,27 @@ export class GrafcetEngine {
       this.etapasActivas.clear();
       this.etapasActivas.add(inicial.id);
       this.etapaAnterior = new Set(this.etapasActivas);
-      IO.caja_color = Math.floor(Math.random() * 3);
-      IO.caja_grande = (IO.caja_color === 0);
-      IO.caja_x = 0;
+      IO.forma = Math.floor(Math.random() * 3);
+      IO.color = Math.floor(Math.random() * 5);
+      IO.fase = 0;
+      IO.progreso = 0;
       IO.caja_empujada = false;
-      IO.fotocelula = false;
+      IO.fotocelula1 = false;
+      IO.fotocelula2 = false;
       IO.timer_fin_caja = 0;
       IO.motor_cinta = false;
+      IO.lote_completo = false;
     }
   }
 
-  // Prepara una caja nueva al volver a la etapa inicial
   reiniciarCaja() {
-    IO.caja_color = Math.floor(Math.random() * 3);
-    IO.caja_grande = (IO.caja_color === 0);
-    IO.caja_x = 0;
+    IO.forma = Math.floor(Math.random() * 3);
+    IO.color = Math.floor(Math.random() * 5);
+    IO.fase = 0;
+    IO.progreso = 0;
     IO.caja_empujada = false;
-    IO.fotocelula = false;
+    IO.fotocelula1 = false;
+    IO.fotocelula2 = false;
     IO.timer_fin_caja = 0;
     IO.motor_cinta = false;
   }
@@ -65,8 +69,8 @@ export class GrafcetEngine {
   reset() { this.stop(); this.init(); this.actualizarSalidas(); this.emit(); }
 
   ciclo(deltaTime) {
-    // Si ya hemos procesado 10 cajas, detenemos la máquina
-    if (IO.contador1 + IO.contador2 + IO.contador3 >= IO.lote_objetivo) {
+    const total = IO.contadores.reduce((a, b) => a + b, 0);
+    if (total >= IO.lote_objetivo) {
       if (!IO.lote_completo) {
         IO.lote_completo = true;
         IO.motor_cinta = false;
@@ -90,15 +94,14 @@ export class GrafcetEngine {
             } else {
               try {
                 const context = {
-                  fotocelula: IO.fotocelula,
-                  caja_color: IO.caja_color,
-                  caja_grande: IO.caja_grande,
+                  fotocelula1: IO.fotocelula1,
+                  fotocelula2: IO.fotocelula2,
+                  forma: IO.forma,
+                  color: IO.color,
                   motor_cinta: IO.motor_cinta,
-                  contador1: IO.contador1,
-                  contador2: IO.contador2,
-                  contador3: IO.contador3,
                   caja_empujada: IO.caja_empujada,
-                  timer_fin_caja: IO.timer_fin_caja
+                  timer_fin_caja: IO.timer_fin_caja,
+                  contador: total
                 };
                 const evaluador = new Function(...Object.keys(context), `return ${expresion};`);
                 resultado = evaluador(...Object.values(context));
@@ -150,14 +153,14 @@ export class GrafcetEngine {
         etapa.acciones.forEach(accion => {
           if (accion === 'motor_cinta=1') IO.motor_cinta = true;
 
-          if (accion === 'contador1+1' && !this.etapaAnterior.has(idEtapa)) {
-            if (IO.contador1 + IO.contador2 + IO.contador3 < IO.lote_objetivo) IO.contador1++;
-          }
-          if (accion === 'contador2+1' && !this.etapaAnterior.has(idEtapa)) {
-            if (IO.contador1 + IO.contador2 + IO.contador3 < IO.lote_objetivo) IO.contador2++;
-          }
-          if (accion === 'contador3+1' && !this.etapaAnterior.has(idEtapa)) {
-            if (IO.contador1 + IO.contador2 + IO.contador3 < IO.lote_objetivo) IO.contador3++;
+          // Contadores: contadorN+1 donde N es el índice de la rama
+          const match = accion.match(/^contador(\d+)\+1$/);
+          if (match && !this.etapaAnterior.has(idEtapa)) {
+            const idx = parseInt(match[1], 10) - 1;
+            const total = IO.contadores.reduce((a, b) => a + b, 0);
+            if (idx >= 0 && idx < IO.contadores.length && total < IO.lote_objetivo) {
+              IO.contadores[idx]++;
+            }
           }
         });
       }
@@ -165,21 +168,48 @@ export class GrafcetEngine {
   }
 
   actualizarFisica(dt) {
-    // Fotocélula: ventana de detección en la unión
-    IO.fotocelula = IO.caja_x >= 0.25 && IO.caja_x < 0.35;
-
-    // Movimiento de la caja
-    if (IO.motor_cinta && !IO.caja_empujada) {
-      IO.caja_x += 0.3 * dt;
+    // Transiciones de fase por activación del GRAFCET
+    if (IO.fase === 1 && IO.motor_cinta) {
+      IO.fase = 2;
+      IO.progreso = 0;
+    }
+    if (IO.fase === 3 && IO.motor_cinta) {
+      IO.fase = 4;
+      IO.progreso = 0;
     }
 
-    // Llegada al final de la rama
-    if (IO.caja_x >= 0.95) {
+    // Fotocélulas
+    IO.fotocelula1 = (IO.fase === 0 && IO.progreso >= 0.9) || IO.fase === 1;
+    IO.fotocelula2 = IO.forma === 0 && ((IO.fase === 2 && IO.progreso >= 0.9) || IO.fase === 3);
+
+    // Movimiento
+    if (IO.motor_cinta && !IO.caja_empujada && IO.fase !== 1 && IO.fase !== 3 && IO.fase !== 5) {
+      IO.progreso += 0.4 * dt;
+    }
+
+    // Transiciones de fase automáticas
+    if (IO.fase === 0 && IO.progreso >= 1) {
+      IO.fase = 1;
+      IO.progreso = 1;
+    }
+    if (IO.fase === 2 && IO.progreso >= 1) {
+      if (IO.forma === 0) {
+        IO.fase = 3;
+        IO.progreso = 1;
+      } else {
+        IO.fase = 5;
+        IO.progreso = 1;
+        IO.caja_empujada = true;
+      }
+    }
+    if (IO.fase === 4 && IO.progreso >= 1) {
+      IO.fase = 5;
+      IO.progreso = 1;
       IO.caja_empujada = true;
     }
 
     // Temporizador opcional (caja espera en el contenedor)
-    if (!IO.caja_empujada && IO.caja_x >= 0.3) {
+    if (!IO.caja_empujada && IO.progreso >= 0.9) {
       IO.timer_fin_caja += dt;
       if (IO.timer_fin_caja > 1.0) {
         IO.caja_empujada = true;

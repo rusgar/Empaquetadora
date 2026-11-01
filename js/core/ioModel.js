@@ -1,35 +1,35 @@
 export const IO = {
   // Entradas
-  fotocelula: false,
-  caja_color: 0, // 0 = rojo, 1 = azul, 2 = verde
-  caja_grande: false, // Derivado de caja_color (rojo = grande)
+  fotocelula1: false, // Fotocélula del desviador 1 (por forma)
+  fotocelula2: false, // Fotocélula del desviador 2 (por color)
+  forma: 0,            // 0 = caja, 1 = triángulo, 2 = círculo
+  color: 0,            // 0 = rojo, 1 = azul, 2 = verde, 3 = amarillo, 4 = morado
 
   // Salidas
   motor_cinta: false,
 
   // Físicas
-  caja_x: 0, // 0..1: 0-0.3 cinta principal, 0.3-1.0 rama seleccionada
+  fase: 0,             // 0=principal, 1=unión1, 2=secundaria, 3=unión2, 4=terciaria, 5=fin
+  progreso: 0,         // 0..1 dentro de la fase actual
   caja_empujada: false,
-
-  // Contadores (uno por rama/color)
-  contador1: 0, // Rama 0 (rojo)
-  contador2: 0, // Rama 1 (azul)
-  contador3: 0, // Rama 2 (verde)
-  lote_objetivo: 10,
-  lote_completo: false,
   timer_fin_caja: 0,
 
+  // Contadores: [forma][color] -> índice = forma*5 + color
+  contadores: new Array(15).fill(0),
+  lote_objetivo: 15,
+  lote_completo: false,
+
   reset() {
-    this.fotocelula = false;
-    this.caja_color = Math.floor(Math.random() * 3);
-    this.caja_grande = (this.caja_color === 0);
+    this.fotocelula1 = false;
+    this.fotocelula2 = false;
+    this.forma = Math.floor(Math.random() * 3);
+    this.color = Math.floor(Math.random() * 5);
     this.motor_cinta = false;
-    this.caja_x = 0;
+    this.fase = 0;
+    this.progreso = 0;
     this.caja_empujada = false;
-    this.contador1 = 0;
-    this.contador2 = 0;
-    this.contador3 = 0;
-    this.lote_completo = false;
     this.timer_fin_caja = 0;
+    this.contadores = new Array(15).fill(0);
+    this.lote_completo = false;
   }
 };
