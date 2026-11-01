@@ -24,13 +24,13 @@
   </header>
 
   <main class="dashboard">
-    <!-- Columna izquierda: paleta -->
+    <!-- Columna izquierda: paleta + instrucciones -->
     <section class="panel panel-paleta">
       <h2>🔧 Paleta GRAFCET</h2>
-      <p class="hint">Arrastra los elementos al lienzo (próximamente).</p>
+      <p class="hint">Añade etapas y transiciones. Selecciona una en el lienzo para editar sus instrucciones aquí.</p>
       <div class="paleta-item" data-tipo="etapa">○ Etapa</div>
       <div class="paleta-item" data-tipo="transicion">→ Transición</div>
-      <div class="paleta-item" data-tipo="accion">▣ Acción</div>
+      <div id="inspector" class="inspector"></div>
     </section>
 
     <!-- Columna central: escena + editor -->
