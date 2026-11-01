@@ -186,6 +186,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  document.getElementById('btn-zoom-in').addEventListener('click', () => { editor.zoomIn(); });
+  document.getElementById('btn-zoom-out').addEventListener('click', () => { editor.zoomOut(); });
+  document.getElementById('btn-zoom-fit').addEventListener('click', () => { editor.fitView(); });
+
   document.querySelectorAll('.paleta-item').forEach(item => {
     item.addEventListener('click', () => {
       const tipo = item.getAttribute('data-tipo');

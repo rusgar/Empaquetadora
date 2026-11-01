@@ -17,6 +17,7 @@ export class EditorGrafcet {
 
     this.elementoSeleccionado = null;
     this._firmaModelo = null;
+    this._zoomManual = false;
     
     // Variables para el arrastre
     this.isDragging = false;
@@ -299,7 +300,7 @@ export class EditorGrafcet {
       g.setAttribute('class', `nodo-svg etapa-svg ${etapa.inicial ? 'inicial' : ''} ${this.elementoSeleccionado === etapa.id ? 'selected' : ''} ${estaActiva ? 'activa' : ''}`);
       
       const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      circle.setAttribute('r', '18');
+      circle.setAttribute('r', '22');
       g.appendChild(circle);
 
       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -395,7 +396,7 @@ export class EditorGrafcet {
     const firma = GrafcetModel.etapas.map(e => e.id).join(',') + '|' +
                   GrafcetModel.transiciones.map(t => t.id).join(',') + '|' +
                   GrafcetModel.conexiones.length;
-    if (firma !== this._firmaModelo) {
+    if (firma !== this._firmaModelo && !this._zoomManual) {
       this._firmaModelo = firma;
       this.ajustarVista();
     }
@@ -404,7 +405,26 @@ export class EditorGrafcet {
   // Fuerza el reencuadre en la próxima llamada a render()
   solicitarAjuste() {
     this._firmaModelo = null;
+    this._zoomManual = false;
   }
+
+  // Zoom manual
+  zoom(factor) {
+    const vb = this.svg.getAttribute('viewBox');
+    if (!vb) { this.solicitarAjuste(); this.render(); return; }
+    const parts = vb.split(/\s+/).map(Number);
+    if (parts.length !== 4) return;
+    const [vx, vy, vw, vh] = parts;
+    const cx = vx + vw / 2;
+    const cy = vy + vh / 2;
+    const newW = vw / factor;
+    const newH = vh / factor;
+    this.svg.setAttribute('viewBox', `${cx - newW / 2} ${cy - newH / 2} ${newW} ${newH}`);
+    this._zoomManual = true;
+  }
+  zoomIn() { this.zoom(1.25); }
+  zoomOut() { this.zoom(0.8); }
+  fitView() { this.solicitarAjuste(); this.render(); }
 
   ajustarVista() {
     if (typeof this.svg.getBBox !== 'function') return;
