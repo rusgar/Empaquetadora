@@ -187,10 +187,9 @@ export class EditorGrafcet {
 
   renderInspectorTransicion(el, cont) {
     const variables = [
-      'fotocelula', 'caja_grande', 'caja_empujada',
-      'timer_fin_caja', 'timer_cilindro',
-      'motor_cinta', 'cilindro_extendido',
-      'contador1', 'contador2'
+      'fotocelula', 'caja_color', 'caja_grande', 'caja_empujada',
+      'timer_fin_caja', 'motor_cinta',
+      'contador1', 'contador2', 'contador3'
     ];
     const operadores = ['==', '!=', '>', '<', '&&', '||', '!', 'true', 'false'];
     const presets = [

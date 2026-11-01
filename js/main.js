@@ -26,37 +26,46 @@ document.addEventListener('DOMContentLoaded', () => {
     actualizarMetricas();
   });
 
-  // GRAFCET DE PRUEBA (Bifurcación grande / pequeña)
+  // GRAFCET DE PRUEBA (Clasificación por color: rojo/azul/verde)
   if (GrafcetModel.etapas.length === 0) {
-    // Rama común: arranque y avance de la cinta
-    const e1 = GrafcetModel.agregarEtapa(60, 130, true);
+    const e1 = GrafcetModel.agregarEtapa(60, 160, true);
     e1.acciones = ['motor_cinta=1'];
 
-    // ---- Caja GRANDE: el pistón la desvía al contenedor azul ----
+    // ---- Rama 0: ROJO ----
     const t2 = GrafcetModel.agregarTransicion(130, 70);
-    t2.condicion = 'fotocelula==true && caja_grande==true';
-    const e3 = GrafcetModel.agregarEtapa(210, 70, false);
-    e3.acciones = ['motor_cinta=0', 'cilindro=1'];
+    t2.condicion = 'fotocelula==true && caja_color==0';
+    const e3 = GrafcetModel.agregarEtapa(210, 60, false);
+    e3.acciones = ['motor_cinta=1'];
     const t4 = GrafcetModel.agregarTransicion(290, 70);
     t4.condicion = 'caja_empujada == true';
-    const e5 = GrafcetModel.agregarEtapa(370, 70, false);
-    e5.acciones = ['cilindro=0', 'contador1+1'];
+    const e5 = GrafcetModel.agregarEtapa(370, 60, false);
+    e5.acciones = ['motor_cinta=0', 'contador1+1'];
 
-    // ---- Caja PEQUEÑA: sigue por la cinta hasta el contenedor amarillo ----
-    const t6 = GrafcetModel.agregarTransicion(130, 190);
-    t6.condicion = 'fotocelula==true && caja_grande==false';
-    const e7 = GrafcetModel.agregarEtapa(210, 190, false);
+    // ---- Rama 1: AZUL ----
+    const t6 = GrafcetModel.agregarTransicion(130, 160);
+    t6.condicion = 'fotocelula==true && caja_color==1';
+    const e7 = GrafcetModel.agregarEtapa(210, 160, false);
     e7.acciones = ['motor_cinta=1'];
-    const t8 = GrafcetModel.agregarTransicion(290, 190);
-    t8.condicion = 'timer_fin_caja > 1.0';
-    const e9 = GrafcetModel.agregarEtapa(370, 190, false);
-    e9.acciones = ['contador2+1'];
+    const t8 = GrafcetModel.agregarTransicion(290, 160);
+    t8.condicion = 'caja_empujada == true';
+    const e9 = GrafcetModel.agregarEtapa(370, 160, false);
+    e9.acciones = ['motor_cinta=0', 'contador2+1'];
 
-    // Retorno común al inicio (convergencia OR de las dos ramas)
-    const t10 = GrafcetModel.agregarTransicion(450, 130);
-    t10.condicion = 'TRUE';
+    // ---- Rama 2: VERDE ----
+    const t10 = GrafcetModel.agregarTransicion(130, 250);
+    t10.condicion = 'fotocelula==true && caja_color==2';
+    const e11 = GrafcetModel.agregarEtapa(210, 260, false);
+    e11.acciones = ['motor_cinta=1'];
+    const t12 = GrafcetModel.agregarTransicion(290, 250);
+    t12.condicion = 'caja_empujada == true';
+    const e13 = GrafcetModel.agregarEtapa(370, 260, false);
+    e13.acciones = ['motor_cinta=0', 'contador3+1'];
 
-    // Conexiones (siempre etapa -> transición -> etapa)
+    // Retorno común al inicio (convergencia OR de las 3 ramas)
+    const t14 = GrafcetModel.agregarTransicion(450, 160);
+    t14.condicion = 'TRUE';
+
+    // Conexiones
     GrafcetModel.agregarConexion(e1.id, t2.id);
     GrafcetModel.agregarConexion(t2.id, e3.id);
     GrafcetModel.agregarConexion(e3.id, t4.id);
@@ -67,9 +76,15 @@ document.addEventListener('DOMContentLoaded', () => {
     GrafcetModel.agregarConexion(e7.id, t8.id);
     GrafcetModel.agregarConexion(t8.id, e9.id);
 
-    GrafcetModel.agregarConexion(e5.id, t10.id);
-    GrafcetModel.agregarConexion(e9.id, t10.id);
-    GrafcetModel.agregarConexion(t10.id, e1.id); // Vuelta al inicio
+    GrafcetModel.agregarConexion(e1.id, t10.id);
+    GrafcetModel.agregarConexion(t10.id, e11.id);
+    GrafcetModel.agregarConexion(e11.id, t12.id);
+    GrafcetModel.agregarConexion(t12.id, e13.id);
+
+    GrafcetModel.agregarConexion(e5.id, t14.id);
+    GrafcetModel.agregarConexion(e9.id, t14.id);
+    GrafcetModel.agregarConexion(e13.id, t14.id);
+    GrafcetModel.agregarConexion(t14.id, e1.id);
 
     editor.render();
   }
@@ -90,8 +105,8 @@ function actualizarMetricas() {
     document.getElementById('m-ciclo').textContent = activasStr || '--';
     
     // Suma total de cajas
-    const totalCajas = IO.contador1 + IO.contador2;
-    document.getElementById('m-cajas').innerHTML = `C1: ${IO.contador1} | C2: ${IO.contador2} (<b>${totalCajas}/10</b>)`;
+    const totalCajas = IO.contador1 + IO.contador2 + IO.contador3;
+    document.getElementById('m-cajas').innerHTML = `C1: ${IO.contador1} | C2: ${IO.contador2} | C3: ${IO.contador3} (<b>${totalCajas}/10</b>)`;
     
     if (engine.enEjecucion) {
       document.getElementById('e-arranque').innerHTML = '✅ Arranque';
