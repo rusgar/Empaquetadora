@@ -168,6 +168,24 @@ document.addEventListener('DOMContentLoaded', () => {
     editor.render();
   }
 
+  // Pestañas: alternar entre Escena y Editor
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const panel = document.getElementById('panel-' + btn.dataset.tab);
+      if (panel) panel.classList.add('active');
+      if (btn.dataset.tab === 'editor') {
+        editor.solicitarAjuste();
+        editor.render();
+        editor.setEtapasActivas(engine.etapasActivas);
+      } else {
+        updateEmpaquetadora();
+      }
+    });
+  });
+
   document.querySelectorAll('.paleta-item').forEach(item => {
     item.addEventListener('click', () => {
       const tipo = item.getAttribute('data-tipo');

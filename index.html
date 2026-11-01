@@ -6,7 +6,7 @@
   <title>ELEE018PO · Bloque 9 · Empaquetadora</title>
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/dashboard.css" />
-    <link rel="stylesheet" href="css/grafcet.css" />
+  <link rel="stylesheet" href="css/grafcet.css" />
 </head>
 <body>
   <header class="topbar">
@@ -33,14 +33,16 @@
       <div id="inspector" class="inspector"></div>
     </section>
 
-    <!-- Columna central: escena + editor -->
-        <section class="panel panel-centro">
-      <div class="bloque bloque-escena">
-        <h2>🏭 Escena</h2>
+    <!-- Columna central: escena y editor en pestañas -->
+    <section class="panel panel-centro">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="escena">🏭 Escena</button>
+        <button class="tab-btn" data-tab="editor">🧩 Editor GRAFCET</button>
+      </div>
+      <div class="tab-panel active" id="panel-escena">
         <div id="escena" class="escena"></div>
       </div>
-      <div class="bloque bloque-editor">
-        <h2>🧩 Editor GRAFCET</h2>
+      <div class="tab-panel" id="panel-editor">
         <div id="editor" class="editor"></div>
       </div>
     </section>
@@ -49,7 +51,7 @@
     <section class="panel panel-metricas">
       <h2>📊 Métricas</h2>
       <ul class="metricas">
-                <li><span>Cajas (C1..C9)</span><strong id="m-cajas">C1:0 ... C9:0</strong></li>
+        <li><span>Cajas (C1..C9)</span><strong id="m-cajas">C1:0 C2:0 C3:0 C4:0 C5:0 C6:0 C7:0 C8:0 C9:0</strong></li>
         <li><span>Ciclo actual</span><strong id="m-ciclo">E0</strong></li>
         <li><span>Transiciones</span><strong id="m-trans">0</strong></li>
         <li><span>Errores</span><strong id="m-errores">0</strong></li>
@@ -65,20 +67,19 @@
     </section>
   </main>
 
-   <footer class="toolbar">
+  <footer class="toolbar">
     <button id="btn-run" class="btn btn-primary">▶ RUN</button>
     <button id="btn-pause" class="btn">⏸ PAUSE</button>
     <button id="btn-stop" class="btn">⏹ STOP</button>
     <button id="btn-reset" class="btn">🔄 RESET</button>
     <button id="btn-paso" class="btn">⏭ PASO</button>
-    
+
     <span class="spacer"></span>
-    
-    <!-- NUEVOS BOTONES DEL PASO 5 -->
+
     <button id="btn-importar" class="btn">📂 Cargar JSON</button>
     <input type="file" id="file-input" accept=".json" style="display: none;">
     <button id="btn-exportar" class="btn">💾 Guardar JSON</button>
-    
+
     <button id="btn-entregar" class="btn btn-accent">📥 ENTREGAR</button>
     <button id="btn-docente" class="btn btn-ghost">🔑 DOCENTE</button>
   </footer>
