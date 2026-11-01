@@ -181,8 +181,24 @@ export function updateEmpaquetadora() {
   // Actualizar forma del objeto en movimiento
   if (cajaContainer) {
     cajaContainer.innerHTML = '';
-    const forma = crearFormaSVG(IO.forma, IO.color);
-    cajaContainer.appendChild(forma);
+    // Antes de la fotocélula 1, el objeto es "indefinido" (gris neutro)
+    if (IO.fase === 0) {
+      const neutro = document.createElementNS(NS, 'g');
+      const top = document.createElementNS(NS, 'polygon');
+      top.setAttribute('points', '0,-24 28,-11 0,2 -28,-11');
+      top.setAttribute('fill', '#64748b');
+      const left = document.createElementNS(NS, 'polygon');
+      left.setAttribute('points', '-28,-11 -28,13 0,26 0,2');
+      left.setAttribute('fill', '#475569');
+      const right = document.createElementNS(NS, 'polygon');
+      right.setAttribute('points', '0,2 28,-11 28,13 0,26');
+      right.setAttribute('fill', '#334155');
+      neutro.append(top, left, right);
+      cajaContainer.appendChild(neutro);
+    } else {
+      const forma = crearFormaSVG(IO.forma, IO.color);
+      cajaContainer.appendChild(forma);
+    }
   }
 
   // MOVIMIENTO DEL OBJETO

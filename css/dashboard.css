@@ -22,9 +22,9 @@
 
 .panel-centro { display: flex; flex-direction: column; gap: .75rem; min-height: 0; }
 
-/* La escena gana espacio; el editor queda limpio y compacto */
-.bloque-escena { flex: 8; min-height: 400px; }
-.bloque-editor { flex: 2; min-height: 180px; }
+/* La escena ocupa casi todo el alto disponible */
+.bloque-escena { flex: 9; min-height: 520px; }
+.bloque-editor { flex: 1; min-height: 100px; }
 
 .bloque {
   background: var(--bg-card); border-radius: var(--radius);
@@ -34,7 +34,20 @@
 .escena, .editor {
   flex: 1; border: 1px dashed var(--border); border-radius: var(--radius);
   display: flex; align-items: center; justify-content: center;
-  overflow: hidden; position: relative;
+  overflow: visible; position: relative;
+}
+
+#escena svg {
+  width: 100%; height: 100%;
+  transform: scale(1.2);
+  transform-origin: center center;
+}
+
+/* La escena se escala para llenar el espacio disponible */
+#escena svg {
+  width: 100%; height: 100%;
+  transform: scale(1.25);
+  transform-origin: center center;
 }
 
 /* ... resto del CSS igual ... */
