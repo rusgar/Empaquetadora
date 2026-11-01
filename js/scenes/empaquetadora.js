@@ -290,6 +290,8 @@ export function updateEmpaquetadora() {
       cont.querySelectorAll('.caja-apilada').forEach(e => e.remove());
       const idx = f * 3 + c;
       const n = IO.contadores[idx] || 0;
+      // Mostrar el contenedor solo si tiene cajas (escena "vacía" al inicio)
+      cont.setAttribute('opacity', n > 0 ? '1' : '0.15');
       const colores = COLORES[c];
       for (let i = 0; i < n; i++) {
         const forma = crearFormaSVG(f, c);
@@ -297,6 +299,18 @@ export function updateEmpaquetadora() {
         forma.setAttribute('transform', `translate(${25 + col * 30}, ${55 - fila * 18}) scale(0.5)`);
         forma.setAttribute('class', 'caja-apilada');
         cont.appendChild(forma);
+      }
+    });
+  });
+
+  // Ocultar ramas terciarias sin uso
+  [0, 1, 2].forEach(f => {
+    [0, 1, 2].forEach(c => {
+      const rama = document.getElementById(`rama-ter-${f}-${c}`);
+      if (rama) {
+        const idx = f * 3 + c;
+        const n = IO.contadores[idx] || 0;
+        rama.setAttribute('opacity', n > 0 ? '1' : '0.08');
       }
     });
   });
