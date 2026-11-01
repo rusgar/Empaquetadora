@@ -80,9 +80,7 @@ export class GrafcetEngine {
               cilindro_extendido: IO.cilindro_extendido,
               contador: IO.contador,
               timer_cilindro: IO.timer_cilindro,
-              caja_empujada: IO.caja_empujada,
-              check_caja: IO.timer_check > 0,
-              timer_check: IO.timer_check
+              caja_empujada: IO.caja_empujada
             };
             const evaluador = new Function(...Object.keys(context), `return ${t.condicion};`);
             resultado = evaluador(...Object.values(context));
@@ -108,7 +106,6 @@ export class GrafcetEngine {
           IO.caja_empujada = false;
           IO.caja_x = 120; 
           IO.fotocelula = false;
-          IO.timer_check = 0;
       }
 
       this.actualizarSalidas();
@@ -138,10 +135,11 @@ export class GrafcetEngine {
       }
     });
   }
+
   actualizarFisica(dt) {
-    // 1. Movimiento de la caja (MUY LENTO PARA VER EL MOVIMIENTO)
+    // 1. Movimiento de la caja por la cinta (Velocidad equilibrada: 60)
     if (IO.motor_cinta && !IO.caja_empujada && IO.caja_x < 340) {
-      IO.caja_x += 5 * dt; // Velocidad de tortuga
+      IO.caja_x += 60 * dt; 
       if (IO.caja_x >= 340) {
         IO.caja_x = 340;
         IO.fotocelula = true; 
@@ -150,36 +148,18 @@ export class GrafcetEngine {
         IO.fotocelula = false;
     }
 
-    // 2. Empuje del cilindro
+    // 2. Empuje del cilindro (Velocidad: 100)
     if (IO.cilindro_extendido) {
        IO.timer_cilindro += dt; 
        if (IO.caja_x >= 300 && !IO.caja_empujada) {
-           IO.caja_x += 15 * dt; // Empuje lento
+           IO.caja_x += 100 * dt; 
            if (IO.caja_x > 520) {
              IO.caja_x = 520;
              IO.caja_empujada = true; 
-             IO.timer_check = 2.0; // El check dura 2 segundos
            }
        }
     } else {
        IO.timer_cilindro = 0; 
     }
-
-    // 3. Check de caja
-    if (IO.timer_check > 0) {
-        IO.timer_check -= dt;
-    }
-
-    // 4. Fin de lote: Congelar 3 segundos al terminar
-    if (IO.lote_completo && IO.timer_check > 0) {
-        // Congelado
-    } else if (!IO.cilindro_extendido && IO.caja_empujada && IO.timer_check <= 0) {
-        if (IO.contador >= IO.lote_objetivo) {
-            IO.motor_cinta = false;
-            IO.lote_completo = true;
-            IO.timer_check = 3.0;
-        }
-    }
   }
-  
 }
