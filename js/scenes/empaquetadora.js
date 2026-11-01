@@ -25,11 +25,11 @@ const SECUNDARIAS = [
 // Posiciones de las terciarias: TERCIARIAS[forma][color] = {x, y}
 const TERCIARIAS = [
   // caja
-  [{ x: 1000, y: 100 }, { x: 1000, y: 200 }, { x: 1000, y: 300 }],
+  [{ x: 950, y: 100 }, { x: 950, y: 200 }, { x: 950, y: 300 }],
   // triángulo
-  [{ x: 1000, y: 400 }, { x: 1000, y: 500 }, { x: 1000, y: 600 }],
+  [{ x: 950, y: 400 }, { x: 950, y: 500 }, { x: 950, y: 600 }],
   // círculo
-  [{ x: 1000, y: 700 }, { x: 1000, y: 800 }, { x: 1000, y: 900 }]
+  [{ x: 950, y: 700 }, { x: 950, y: 800 }, { x: 950, y: 900 }]
 ];
 
 const SEC_COLORS = ['#f59e0b', '#a78bfa', '#38bdf8'];
@@ -38,40 +38,6 @@ const TER_COLORS = ['#ef4444', '#3b82f6', '#22c55e'];
 function crearFormaSVG(forma, color) {
   const c = COLORES[color] || COLORES[0];
   const g = document.createElementNS(NS, 'g');
-
-  if (forma === 0) {
-    const top = document.createElementNS(NS, 'polygon');
-    top.setAttribute('points', '0,-24 28,-11 0,2 -28,-11');
-    top.setAttribute('fill', c.base);
-    const left = document.createElementNS(NS, 'polygon');
-    left.setAttribute('points', '-28,-11 -28,13 0,26 0,2');
-    left.setAttribute('fill', c.oscuro);
-    const right = document.createElementNS(NS, 'polygon');
-    right.setAttribute('points', '0,2 28,-11 28,13 0,26');
-    right.setAttribute('fill', c.sombra);
-    g.append(top, left, right);
-  } else if (forma === 1) {
-    const tri = document.createElementNS(NS, 'polygon');
-    tri.setAttribute('points', '0,-26 28,18 -28,18');
-    tri.setAttribute('fill', c.base);
-    tri.setAttribute('stroke', c.oscuro);
-    tri.setAttribute('stroke-width', '3');
-    g.appendChild(tri);
-  } else {
-    const circ = document.createElementNS(NS, 'circle');
-    circ.setAttribute('r', '24');
-    circ.setAttribute('fill', c.base);
-    circ.setAttribute('stroke', c.oscuro);
-    circ.setAttribute('stroke-width', '3');
-    g.appendChild(circ);
-  }
-  return g;
-}
-
-function crearFormaPequena(forma, color, escala) {
-  const c = COLORES[color] || COLORES[0];
-  const g = document.createElementNS(NS, 'g');
-  g.setAttribute('transform', `scale(${escala})`);
 
   if (forma === 0) {
     const top = document.createElementNS(NS, 'polygon');
@@ -188,7 +154,6 @@ export function renderEmpaquetadora(container) {
   for (let f = 0; f < 3; f++) {
     for (let c = 0; c < 3; c++) {
       const y = TERCIARIAS[f][c].y - 40;
-      const idx = f * 3 + c;
       svg += `<g id="contenedor-ter-${f}-${c}" transform="translate(1000,${y})">`;
       svg += `<rect x="0" y="0" width="130" height="90" rx="12" fill="#0f172a" stroke="${terColors[c]}" stroke-width="3"/>`;
       svg += `<rect x="12" y="12" width="106" height="66" rx="8" fill="#0b1220" stroke="${terColors[c]}" stroke-width="2" opacity="0.6"/>`;
@@ -295,7 +260,7 @@ export function updateEmpaquetadora() {
     });
   });
 
-  // LLENADO VISUAL DE CONTENEDORES TERCIARIOS
+  // LLENADO VISUAL DE CONTENEDORES (9 terciarios)
   [0, 1, 2].forEach(f => {
     [0, 1, 2].forEach(c => {
       const cont = document.getElementById(`contenedor-ter-${f}-${c}`);
@@ -303,13 +268,12 @@ export function updateEmpaquetadora() {
       cont.querySelectorAll('.caja-apilada').forEach(e => e.remove());
       const idx = f * 3 + c;
       const n = IO.contadores[idx] || 0;
-      const colores = COLORES[c];
       for (let i = 0; i < n; i++) {
-        const cubo = crearCubo(colores.base, colores.oscuro, colores.sombra);
+        const forma = crearFormaSVG(f, c);
         const col = i % 3; const fila = Math.floor(i / 3);
-        cubo.setAttribute('transform', `translate(${25 + col * 30}, ${55 - fila * 18}) scale(0.5)`);
-        cubo.setAttribute('class', 'caja-apilada');
-        cont.appendChild(cubo);
+        forma.setAttribute('transform', `translate(${25 + col * 30}, ${55 - fila * 18}) scale(0.5)`);
+        forma.setAttribute('class', 'caja-apilada');
+        cont.appendChild(forma);
       }
     });
   });

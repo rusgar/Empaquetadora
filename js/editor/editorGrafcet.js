@@ -189,7 +189,8 @@ export class EditorGrafcet {
     const variables = [
       'fotocelula1', 'fotocelula2', 'forma', 'color',
       'motor_cinta', 'caja_empujada', 'timer_fin_caja',
-      'contador1', 'contador2', 'contador3', 'contador4', 'contador5'
+      'contador1', 'contador2', 'contador3', 'contador4', 'contador5',
+      'contador6', 'contador7', 'contador8', 'contador9'
     ];
     const operadores = ['==', '!=', '>', '<', '&&', '||', '!', 'true', 'false'];
     const presets = [
