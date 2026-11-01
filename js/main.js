@@ -190,6 +190,17 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-zoom-out').addEventListener('click', () => { editor.zoomOut(); });
   document.getElementById('btn-zoom-fit').addEventListener('click', () => { editor.fitView(); });
 
+  // Zoom de la escena
+  let sceneScale = 1.5;
+  const sceneSvg = () => document.querySelector('#escena svg');
+  const applySceneScale = () => {
+    const svg = sceneSvg();
+    if (svg) svg.style.transform = `scale(${sceneScale})`;
+  };
+  document.getElementById('btn-scene-zoom-in').addEventListener('click', () => { sceneScale = Math.min(3, sceneScale * 1.25); applySceneScale(); });
+  document.getElementById('btn-scene-zoom-out').addEventListener('click', () => { sceneScale = Math.max(0.5, sceneScale * 0.8); applySceneScale(); });
+  document.getElementById('btn-scene-zoom-fit').addEventListener('click', () => { sceneScale = 1.5; applySceneScale(); });
+
   document.querySelectorAll('.paleta-item').forEach(item => {
     item.addEventListener('click', () => {
       const tipo = item.getAttribute('data-tipo');
