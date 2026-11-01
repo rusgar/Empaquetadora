@@ -173,15 +173,41 @@ document.addEventListener('DOMContentLoaded', () => {
     editor.render();
   }
 
-  // Botón DOCENTE: carga el GRAFCET de ejemplo completo
+  // Botón DOCENTE: abre modal de login
   document.getElementById('btn-docente').addEventListener('click', () => {
-    cargarGrafcetEjemplo();
-    IO.reset();
-    engine.reset();
-    editor.setEtapasActivas(new Set());
-    updateEmpaquetadora();
-    actualizarMetricas();
-    // alert('✅ GRAFCET de ejemplo (docente) cargado.');
+    document.getElementById('modal-docente').style.display = 'flex';
+    document.getElementById('docente-user').value = '';
+    document.getElementById('docente-pass').value = '';
+    document.getElementById('docente-error').style.display = 'none';
+  });
+
+  document.getElementById('btn-docente-cancel').addEventListener('click', () => {
+    document.getElementById('modal-docente').style.display = 'none';
+  });
+
+  document.getElementById('btn-docente-login').addEventListener('click', async () => {
+    const user = document.getElementById('docente-user').value.trim();
+    const pass = document.getElementById('docente-pass').value;
+    let config = null;
+    try {
+      const resp = await fetch('config.json', { cache: 'no-store' });
+      if (resp.ok) config = await resp.json();
+    } catch (e) { config = null; }
+
+    const ok = config && config.docente &&
+      user === config.docente.usuario && pass === config.docente.password;
+
+    if (ok) {
+      document.getElementById('modal-docente').style.display = 'none';
+      cargarGrafcetEjemplo();
+      IO.reset();
+      engine.reset();
+      editor.setEtapasActivas(new Set());
+      updateEmpaquetadora();
+      actualizarMetricas();
+    } else {
+      document.getElementById('docente-error').style.display = 'block';
+    }
   });
 
   // Botón ENTREGAR: exporta el trabajo del alumno

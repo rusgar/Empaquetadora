@@ -94,6 +94,21 @@
     <button id="btn-docente" class="btn btn-ghost">🔑 DOCENTE</button>
   </footer>
 
+  <!-- Modal de login docente -->
+  <div id="modal-docente" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h3>🔑 Acceso Docente</h3>
+      <label>Usuario</label>
+      <input type="text" id="docente-user" placeholder="Usuario">
+      <label>Contraseña</label>
+      <input type="password" id="docente-pass" placeholder="Contraseña">
+      <div class="modal-btns">
+        <button id="btn-docente-login" class="btn btn-primary">Entrar</button>
+        <button id="btn-docente-cancel" class="btn">Cancelar</button>
+      </div>
+      <p id="docente-error" class="insp-vacio" style="color:#f87171;display:none;">Credenciales incorrectas.</p>
+    </div>
+  </div>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

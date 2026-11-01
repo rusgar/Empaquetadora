@@ -172,3 +172,12 @@
   transform: scale(1.5);
   transform-origin: center center;
 }
+/* Modal de login docente */
+.modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+.modal-content { background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; width: 320px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+.modal-content h3 { margin: 0 0 1rem; color: var(--accent); }
+.modal-content label { display: block; margin: .5rem 0 .25rem; font-size: .85rem; color: var(--text-muted); }
+.modal-content input { width: 100%; padding: .5rem; background: #000; color: #fff; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; }
+.modal-btns { display: flex; gap: .5rem; margin-top: 1rem; }
+.modal-btns .btn { flex: 1; }
+#docente-error { color: #f87171; margin-top: .5rem; }

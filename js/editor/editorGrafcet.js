@@ -400,6 +400,18 @@ export class EditorGrafcet {
       this._firmaModelo = firma;
       this.ajustarVista();
     }
+
+    // Pista cuando el lienzo está vacío
+    if (GrafcetModel.etapas.length === 0 && GrafcetModel.transiciones.length === 0) {
+      const hint = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      hint.setAttribute('x', '50%');
+      hint.setAttribute('y', '50%');
+      hint.setAttribute('text-anchor', 'middle');
+      hint.setAttribute('fill', '#64748b');
+      hint.setAttribute('font-size', '14');
+      hint.textContent = 'Lienzo vacío. Añade etapas/transiciones o pulsa DOCENTE.';
+      this.svg.appendChild(hint);
+    }
   }
 
   // Fuerza el reencuadre en la próxima llamada a render()
