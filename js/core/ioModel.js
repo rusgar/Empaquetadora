@@ -1,17 +1,19 @@
 export const IO = {
   // Entradas
-  fotocelula: false,        
+  fotocelula: false,
+  caja_grande: false, // <-- NUEVO: Indica si la caja actual es grande
   
-  // Salidas (las controla el GRAFCET)
+  // Salidas
   motor_cinta: false,
   cilindro_extendido: false,
   
-  // Variables Físicas para la animación
-  caja_x: 120,              // Posición X de la caja en la cinta
-  caja_empujada: false,     // IMPORTANTE: Debe empezar en FALSE
+  // Físicas
+  caja_x: 120,              
+  caja_empujada: false,     
   
   // Contadores
-  contador: 0,
+  contador1: 0, // Cajas grandes (Caja 1)
+  contador2: 0, // Cajas pequeñas (Caja 2)
   lote_objetivo: 10,
   lote_completo: false,
   timer_cilindro: 0,
@@ -19,13 +21,15 @@ export const IO = {
 
   reset() {
     this.fotocelula = false;
+    this.caja_grande = false;
     this.motor_cinta = false;
     this.cilindro_extendido = false;
     this.caja_x = 120;
     this.caja_empujada = false;
-    this.contador = 0;
-    this.timer_cilindro = 0;
+    this.contador1 = 0;
+    this.contador2 = 0;
     this.lote_completo = false;
+    this.timer_cilindro = 0;
     this.timer_check = 0;
   }
 };

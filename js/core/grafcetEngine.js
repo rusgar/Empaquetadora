@@ -76,9 +76,11 @@ export class GrafcetEngine {
           try {
             const context = {
               fotocelula: IO.fotocelula,
+              caja_grande: IO.caja_grande,
               motor_cinta: IO.motor_cinta,
               cilindro_extendido: IO.cilindro_extendido,
-              contador: IO.contador,
+              contador1: IO.contador1,
+              contador2: IO.contador2,
               timer_cilindro: IO.timer_cilindro,
               caja_empujada: IO.caja_empujada
             };
@@ -102,10 +104,12 @@ export class GrafcetEngine {
       this.etapaAnterior = new Set(this.etapasActivas);
       this.etapasActivas = nuevasEtapas;
       
+      // Si entramos en E1 (inicio de ciclo), generamos caja nueva
       if (this.etapasActivas.has('E1')) {
           IO.caja_empujada = false;
           IO.caja_x = 120; 
           IO.fotocelula = false;
+          IO.caja_grande = Math.random() > 0.5; // 50% grande, 50% pequeña
       }
 
       this.actualizarSalidas();
@@ -126,10 +130,11 @@ export class GrafcetEngine {
           if (accion === 'motor_cinta=1') IO.motor_cinta = true;
           if (accion === 'cilindro=1') IO.cilindro_extendido = true;
           
-          if (accion === 'contador+1' && !this.etapaAnterior.has(idEtapa)) {
-             if (IO.contador < IO.lote_objetivo) {
-                 IO.contador++;
-             }
+          if (accion === 'contador1+1' && !this.etapaAnterior.has(idEtapa)) {
+             IO.contador1++;
+          }
+          if (accion === 'contador2+1' && !this.etapaAnterior.has(idEtapa)) {
+             IO.contador2++;
           }
         });
       }
@@ -137,7 +142,7 @@ export class GrafcetEngine {
   }
 
   actualizarFisica(dt) {
-    // 1. Movimiento de la caja por la cinta (Velocidad equilibrada: 60)
+    // 1. Movimiento de la caja
     if (IO.motor_cinta && !IO.caja_empujada && IO.caja_x < 340) {
       IO.caja_x += 60 * dt; 
       if (IO.caja_x >= 340) {
@@ -148,18 +153,24 @@ export class GrafcetEngine {
         IO.fotocelula = false;
     }
 
-    // 2. Empuje del cilindro (Velocidad: 100)
-    if (IO.cilindro_extendido) {
+    // 2. Empuje del cilindro (solo si la caja es grande)
+    if (IO.cilindro_extendido && IO.caja_grande) {
        IO.timer_cilindro += dt; 
        if (IO.caja_x >= 300 && !IO.caja_empujada) {
            IO.caja_x += 100 * dt; 
            if (IO.caja_x > 520) {
              IO.caja_x = 520;
              IO.caja_empujada = true; 
+             IO.timer_check = 1.0; 
            }
        }
     } else {
        IO.timer_cilindro = 0; 
+    }
+
+    // 3. Check
+    if (IO.timer_check > 0) {
+        IO.timer_check -= dt;
     }
   }
 }
