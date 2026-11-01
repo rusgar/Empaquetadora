@@ -4,6 +4,7 @@ export class EditorGrafcet {
   constructor(container, onUpdate) {
     this.container = container;
     this.onUpdate = onUpdate;
+    this.inspectorContainer = document.getElementById('inspector');
     this.etapasActivas = new Set();
     
     // Crear SVG base
@@ -26,6 +27,7 @@ export class EditorGrafcet {
 
     this.initEventos();
     this.render();
+    this.actualizarInspector();
   }
 
   initEventos() {
@@ -58,7 +60,7 @@ export class EditorGrafcet {
       if (e.target === this.svg) {
         this.elementoSeleccionado = null;
         this.render();
-        this.actualizarPanelPropiedades();
+        this.actualizarInspector();
       }
     });
   }
@@ -108,56 +110,146 @@ export class EditorGrafcet {
       }
     }
     this.render();
-    this.actualizarPanelPropiedades();
+    this.actualizarInspector();
   }
 
-  actualizarPanelPropiedades() {
-    let panel = document.getElementById('panel-props');
-    if (!panel) {
-      panel = document.createElement('div');
-      panel.id = 'panel-props';
-      panel.className = 'panel-propiedades';
-      this.container.appendChild(panel);
-    }
+  // ===== Inspector de instrucciones (columna izquierda) =====
+  actualizarInspector() {
+    const cont = this.inspectorContainer;
+    if (!cont) return;
 
     if (!this.elementoSeleccionado) {
-      panel.classList.remove('activo');
+      cont.innerHTML = `
+        <div class="insp-vacio">
+          Selecciona una <b>etapa</b> o una <b>transición</b> en el lienzo
+          para editar sus instrucciones aquí.
+        </div>`;
       return;
     }
 
     const el = GrafcetModel.getElemento(this.elementoSeleccionado);
-    if (!el) return;
-
-    panel.classList.add('activo');
-    if (el.type === 'transicion') {
-      panel.innerHTML = `
-        <label>Condición de Transición (${el.id})</label>
-        <input type="text" id="input-cond" value="${el.condicion}">
-        <p style="font-size:0.7rem; color:#94a3b8; margin-top:5px;">Ej: fotocelula==true</p>
-      `;
-      panel.onmousedown = (e) => e.stopPropagation(); 
-      
-      document.getElementById('input-cond').addEventListener('input', (e) => {
-        el.condicion = e.target.value;
-        this.render(); // Para actualizar el texto en el lienzo
-        this.onUpdate();
-      });
-    } else {
-      // Panel de Edición de Acciones para Etapas
-      panel.innerHTML = `
-        <label>Acciones de Etapa (${el.id})</label>
-        <input type="text" id="input-accion" placeholder="Ej: motor_cinta=1" value="${el.acciones ? el.acciones.join(', ') : ''}">
-        <p style="font-size:0.7rem; color:#94a3b8; margin-top:5px;">Separa múltiples acciones por coma.</p>
-      `;
-      panel.onmousedown = (e) => e.stopPropagation();
-      
-      document.getElementById('input-accion').addEventListener('input', (e) => {
-        // Convertir string "motor_cinta=1, cilindro=1" a array
-        el.acciones = e.target.value.split(',').map(s => s.trim()).filter(s => s !== '');
-        this.render(); // Para dibujar el texto al lado
-        this.onUpdate();
-      });
+    if (!el) {
+      this.elementoSeleccionado = null;
+      this.actualizarInspector();
+      return;
     }
+
+    if (el.type === 'etapa') {
+      this.renderInspectorEtapa(el, cont);
+    } else {
+      this.renderInspectorTransicion(el, cont);
+    }
+  }
+
+  renderInspectorEtapa(el, cont) {
+    if (!el.acciones) el.acciones = [];
+    const disponibles = [
+      'motor_cinta=1', 'motor_cinta=0',
+      'cilindro=1', 'cilindro=0',
+      'contador1+1', 'contador2+1'
+    ].filter(a => !el.acciones.includes(a));
+
+    cont.innerHTML = `
+      <h3>Instrucciones <span class="insp-id">${el.id}</span></h3>
+      <div class="insp-sub">Acciones de la etapa</div>
+      <div class="chips">
+        ${el.acciones.length
+          ? el.acciones.map((a, i) => `
+              <span class="chip">${a}<button data-quitar="${i}" title="Quitar">×</button></span>`).join('')
+          : '<span class="insp-vacio">Sin acciones todavía.</span>'}
+      </div>
+      <div class="insp-sub">Añadir acción</div>
+      <div class="var-grid">
+        ${disponibles.map(a => `<button class="chip-add" data-agregar="${a}">+ ${a}</button>`).join('')}
+      </div>
+    `;
+
+    cont.querySelectorAll('[data-agregar]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const accion = btn.getAttribute('data-agregar');
+        if (!el.acciones.includes(accion)) el.acciones.push(accion);
+        this.render();
+        this.actualizarInspector();
+        this.onUpdate();
+      });
+    });
+
+    cont.querySelectorAll('[data-quitar]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.getAttribute('data-quitar'), 10);
+        el.acciones.splice(i, 1);
+        this.render();
+        this.actualizarInspector();
+        this.onUpdate();
+      });
+    });
+  }
+
+  renderInspectorTransicion(el, cont) {
+    const variables = [
+      'fotocelula', 'caja_grande', 'caja_empujada',
+      'timer_fin_caja', 'timer_cilindro',
+      'motor_cinta', 'cilindro_extendido',
+      'contador1', 'contador2'
+    ];
+    const operadores = ['==', '!=', '>', '<', '&&', '||', '!', 'true', 'false'];
+    const presets = [
+      'fotocelula==true && caja_grande==true',
+      'fotocelula==true && caja_grande==false',
+      'caja_empujada == true',
+      'timer_fin_caja > 1.0',
+      'TRUE'
+    ];
+    const cond = (el.condicion || '').replace(/"/g, '&quot;');
+
+    cont.innerHTML = `
+      <h3>Condición <span class="insp-id">${el.id}</span></h3>
+      <input id="insp-cond" class="cond-input" type="text" value="${cond}" placeholder="Ej: fotocelula==true">
+      <div class="insp-sub">Variables</div>
+      <div class="var-grid">
+        ${variables.map(v => `<button class="var-btn" data-insert="${v}">${v}</button>`).join('')}
+      </div>
+      <div class="insp-sub">Operadores</div>
+      <div class="var-grid">
+        ${operadores.map(o => `<button class="var-btn" data-insert="${o}">${o}</button>`).join('')}
+      </div>
+      <div class="insp-sub">Condiciones típicas</div>
+      ${presets.map(p => `<button class="preset-btn" data-preset="${p}">${p}</button>`).join('')}
+    `;
+
+    const input = cont.querySelector('#insp-cond');
+    const aplicar = (valor) => {
+      el.condicion = valor;
+      this.render();
+      this.onUpdate();
+    };
+
+    input.addEventListener('input', (e) => aplicar(e.target.value));
+
+    cont.querySelectorAll('[data-insert]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const texto = btn.getAttribute('data-insert');
+        const ini = (document.activeElement === input && input.selectionStart != null)
+          ? input.selectionStart
+          : input.value.length;
+        const fin = (document.activeElement === input && input.selectionEnd != null)
+          ? input.selectionEnd
+          : input.value.length;
+        const nuevo = input.value.slice(0, ini) + texto + input.value.slice(fin);
+        input.value = nuevo;
+        input.focus();
+        input.setSelectionRange(ini + texto.length, ini + texto.length);
+        aplicar(nuevo);
+      });
+    });
+
+    cont.querySelectorAll('[data-preset]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const texto = btn.getAttribute('data-preset');
+        input.value = texto;
+        aplicar(texto);
+      });
+    });
   }
 
   // NUEVO MÉTODO: Para pintar las etapas de verde
@@ -216,21 +308,32 @@ export class EditorGrafcet {
       text.textContent = etapa.id;
       g.appendChild(text);
 
-      // Dibujar las acciones a la derecha de la etapa
+      // Badge con el número de acciones (el detalle está en la paleta)
       if (etapa.acciones && etapa.acciones.length > 0) {
-        const textAcciones = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        textAcciones.setAttribute('x', '25');
-        textAcciones.setAttribute('y', '0');
-        textAcciones.setAttribute('class', 'accion-texto');
-        
-        etapa.acciones.forEach((acc, i) => {
-            const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
-            tspan.setAttribute('x', '25');
-            tspan.setAttribute('dy', i === 0 ? '0' : '1.2em');
-            tspan.textContent = acc;
-            textAcciones.appendChild(tspan);
-        });
-        g.appendChild(textAcciones);
+        const badge = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        badge.setAttribute('transform', 'translate(26, -24)');
+
+        const bCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        bCircle.setAttribute('r', '10');
+        bCircle.setAttribute('fill', '#1d4ed8');
+        bCircle.setAttribute('stroke', '#93c5fd');
+        bCircle.setAttribute('stroke-width', '1.5');
+        badge.appendChild(bCircle);
+
+        const bText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        bText.setAttribute('text-anchor', 'middle');
+        bText.setAttribute('dy', '4');
+        bText.setAttribute('fill', '#dbeafe');
+        bText.setAttribute('font-size', '11');
+        bText.setAttribute('font-weight', 'bold');
+        bText.textContent = etapa.acciones.length;
+        badge.appendChild(bText);
+
+        const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        title.textContent = etapa.acciones.join(', ');
+        badge.appendChild(title);
+
+        g.appendChild(badge);
       }
 
       this.attachEvents(g, etapa);
@@ -259,15 +362,25 @@ export class EditorGrafcet {
       text.textContent = trans.id;
       g.appendChild(text);
 
-      // Mostrar la condición al lado de la transición (si no es TRUE)
+      // Etiqueta corta de la condición (el texto completo está en la paleta)
       if (trans.condicion && trans.condicion !== 'TRUE') {
         const textCond = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        textCond.setAttribute('x', '-25');
+        textCond.setAttribute('x', '0');
         textCond.setAttribute('y', '-12');
-        textCond.setAttribute('fill', '#f59e0b');
-        textCond.setAttribute('font-size', '11');
+        textCond.setAttribute('text-anchor', 'middle');
+        textCond.setAttribute('fill', '#fbbf24');
+        textCond.setAttribute('font-size', '10');
         textCond.setAttribute('font-family', 'monospace');
-        textCond.textContent = trans.condicion;
+
+        const condicion = trans.condicion;
+        textCond.textContent = condicion.length > 18
+          ? condicion.slice(0, 17) + '…'
+          : condicion;
+
+        const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        title.textContent = condicion;
+        textCond.appendChild(title);
+
         g.appendChild(textCond);
       }
 
