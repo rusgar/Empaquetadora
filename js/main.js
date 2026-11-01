@@ -26,44 +26,50 @@ document.addEventListener('DOMContentLoaded', () => {
     actualizarMetricas();
   });
 
-  // GRAFCET DE PRUEBA (Bifurcación)
+  // GRAFCET DE PRUEBA (Bifurcación grande / pequeña)
   if (GrafcetModel.etapas.length === 0) {
-    // Inicio
-    const e1 = GrafcetModel.agregarEtapa(100, 100, true);
+    // Rama común: arranque y avance de la cinta
+    const e1 = GrafcetModel.agregarEtapa(60, 130, true);
     e1.acciones = ['motor_cinta=1'];
-    
-    // Caja Grande
-    const t2 = GrafcetModel.agregarTransicion(200, 100);
+
+    // ---- Caja GRANDE: el pistón la desvía al contenedor azul ----
+    const t2 = GrafcetModel.agregarTransicion(130, 70);
     t2.condicion = 'fotocelula==true && caja_grande==true';
-    const e3 = GrafcetModel.agregarEtapa(300, 50, false);
+    const e3 = GrafcetModel.agregarEtapa(210, 70, false);
     e3.acciones = ['motor_cinta=0', 'cilindro=1'];
-    const t4 = GrafcetModel.agregarTransicion(400, 100);
+    const t4 = GrafcetModel.agregarTransicion(290, 70);
     t4.condicion = 'caja_empujada == true';
-    const e5 = GrafcetModel.agregarEtapa(500, 50, false);
+    const e5 = GrafcetModel.agregarEtapa(370, 70, false);
     e5.acciones = ['cilindro=0', 'contador1+1'];
 
-    // Caja Pequeña
-    const t6 = GrafcetModel.agregarTransicion(200, 200);
+    // ---- Caja PEQUEÑA: sigue por la cinta hasta el contenedor amarillo ----
+    const t6 = GrafcetModel.agregarTransicion(130, 190);
     t6.condicion = 'fotocelula==true && caja_grande==false';
-    const e7 = GrafcetModel.agregarEtapa(300, 150, false);
+    const e7 = GrafcetModel.agregarEtapa(210, 190, false);
     e7.acciones = ['motor_cinta=1'];
-    const t8 = GrafcetModel.agregarTransicion(400, 200);
-    t8.condicion = 'fotocelula==true'; // Simplificación
-    const e9 = GrafcetModel.agregarEtapa(500, 250, false);
+    const t8 = GrafcetModel.agregarTransicion(290, 190);
+    t8.condicion = 'timer_fin_caja > 1.0';
+    const e9 = GrafcetModel.agregarEtapa(370, 190, false);
     e9.acciones = ['contador2+1'];
 
-    // Conexiones
+    // Retorno común al inicio (convergencia OR de las dos ramas)
+    const t10 = GrafcetModel.agregarTransicion(450, 130);
+    t10.condicion = 'TRUE';
+
+    // Conexiones (siempre etapa -> transición -> etapa)
     GrafcetModel.agregarConexion(e1.id, t2.id);
     GrafcetModel.agregarConexion(t2.id, e3.id);
     GrafcetModel.agregarConexion(e3.id, t4.id);
     GrafcetModel.agregarConexion(t4.id, e5.id);
-    GrafcetModel.agregarConexion(e5.id, e1.id); // Vuelta
 
     GrafcetModel.agregarConexion(e1.id, t6.id);
     GrafcetModel.agregarConexion(t6.id, e7.id);
     GrafcetModel.agregarConexion(e7.id, t8.id);
     GrafcetModel.agregarConexion(t8.id, e9.id);
-    GrafcetModel.agregarConexion(e9.id, e1.id); // Vuelta
+
+    GrafcetModel.agregarConexion(e5.id, t10.id);
+    GrafcetModel.agregarConexion(e9.id, t10.id);
+    GrafcetModel.agregarConexion(t10.id, e1.id); // Vuelta al inicio
 
     editor.render();
   }
@@ -108,8 +114,8 @@ function actualizarMetricas() {
   document.getElementById('btn-pause').addEventListener('click', () => { engine.pause(); });
   document.getElementById('btn-stop').addEventListener('click', () => { engine.stop(); actualizarMetricas(); });
   document.getElementById('btn-reset').addEventListener('click', () => {
-    engine.reset();
     IO.reset();
+    engine.reset();
     editor.setEtapasActivas(new Set());
     updateEmpaquetadora();
     actualizarMetricas();
@@ -137,8 +143,9 @@ function actualizarMetricas() {
     reader.onload = (event) => {
       const exito = GrafcetModel.importarJSON(event.target.result);
       if (exito) {
-        engine.reset(); 
         IO.reset();
+        engine.reset();
+        editor.solicitarAjuste();
         editor.render(); 
         editor.setEtapasActivas(new Set());
         updateEmpaquetadora();

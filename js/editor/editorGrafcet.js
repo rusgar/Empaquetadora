@@ -15,6 +15,7 @@ export class EditorGrafcet {
     this.container.appendChild(this.svg);
 
     this.elementoSeleccionado = null;
+    this._firmaModelo = null;
     
     // Variables para el arrastre
     this.isDragging = false;
@@ -37,8 +38,8 @@ export class EditorGrafcet {
         }
         
         if (this.hasMoved) {
-          this.dragTarget.x = pt.x;
-          this.dragTarget.y = pt.y;
+          this.dragTarget.x = pt.x - this.offsetX;
+          this.dragTarget.y = pt.y - this.offsetY;
           this.render();
         }
       }
@@ -63,16 +64,24 @@ export class EditorGrafcet {
   }
 
   getMousePos(evt) {
-    const rect = this.svg.getBoundingClientRect();
-    return {
-      x: evt.clientX - rect.left,
-      y: evt.clientY - rect.top
-    };
+    const pt = this.svg.createSVGPoint();
+    pt.x = evt.clientX;
+    pt.y = evt.clientY;
+    const ctm = this.svg.getScreenCTM();
+    if (!ctm) return { x: evt.clientX, y: evt.clientY };
+    const p = pt.matrixTransform(ctm.inverse());
+    return { x: p.x, y: p.y };
   }
 
   agregarElemento(tipo) {
-    const cx = this.container.clientWidth / 2 + (Math.random() * 100 - 50);
-    const cy = this.container.clientHeight / 2 + (Math.random() * 100 - 50);
+    // Centro del área visible convertido a coordenadas del SVG
+    const rect = this.svg.getBoundingClientRect();
+    const centro = this.getMousePos({
+      clientX: rect.left + rect.width / 2,
+      clientY: rect.top + rect.height / 2
+    });
+    const cx = centro.x + (Math.random() * 100 - 50);
+    const cy = centro.y + (Math.random() * 100 - 50);
 
     if (tipo === 'etapa') {
       GrafcetModel.agregarEtapa(cx, cy, GrafcetModel.etapas.length === 0);
@@ -265,6 +274,54 @@ export class EditorGrafcet {
       this.attachEvents(g, trans);
       this.svg.appendChild(g);
     });
+
+    // Auto-ajuste de la vista cuando cambia la estructura del GRAFCET
+    const firma = GrafcetModel.etapas.map(e => e.id).join(',') + '|' +
+                  GrafcetModel.transiciones.map(t => t.id).join(',') + '|' +
+                  GrafcetModel.conexiones.length;
+    if (firma !== this._firmaModelo) {
+      this._firmaModelo = firma;
+      this.ajustarVista();
+    }
+  }
+
+  // Fuerza el reencuadre en la próxima llamada a render()
+  solicitarAjuste() {
+    this._firmaModelo = null;
+  }
+
+  ajustarVista() {
+    if (typeof this.svg.getBBox !== 'function') return;
+
+    let bbox = null;
+    try {
+      bbox = this.svg.getBBox();
+    } catch (e) {
+      bbox = null;
+    }
+
+    const hayElementos = GrafcetModel.etapas.length + GrafcetModel.transiciones.length > 0;
+    if (!bbox || bbox.width === 0 || bbox.height === 0) {
+      // Si el navegador aún no ha calculado el layout, reintenta en el siguiente frame
+      if (hayElementos && !this._fitPendiente) {
+        this._fitPendiente = true;
+        requestAnimationFrame(() => {
+          this._fitPendiente = false;
+          this.ajustarVista();
+        });
+      }
+      return;
+    }
+
+    const pad = 55;
+    const anchoMin = this.container.clientWidth || 400;
+    const altoMin = this.container.clientHeight || 300;
+    const vw = Math.max(bbox.width + pad * 2, anchoMin);
+    const vh = Math.max(bbox.height + pad * 2, altoMin);
+    const vx = bbox.x - pad - (vw - (bbox.width + pad * 2)) / 2;
+    const vy = bbox.y - pad - (vh - (bbox.height + pad * 2)) / 2;
+
+    this.svg.setAttribute('viewBox', `${vx} ${vy} ${vw} ${vh}`);
   }
 
   attachEvents(g, elemento) {

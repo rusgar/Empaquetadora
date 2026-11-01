@@ -22,7 +22,19 @@ export class GrafcetEngine {
       this.etapasActivas.add(inicial.id);
       this.etapaAnterior = new Set(this.etapasActivas);
       IO.timer_cilindro = 0;
+      IO.timer_fin_caja = 0;
+      IO.caja_grande = Math.random() > 0.5; // La primera caja también es aleatoria
     }
+  }
+
+  // Prepara una caja nueva al volver a la etapa inicial
+  reiniciarCaja() {
+    IO.caja_empujada = false;
+    IO.caja_x = 120;
+    IO.fotocelula = false;
+    IO.caja_grande = Math.random() > 0.5;
+    IO.timer_fin_caja = 0;
+    IO.timer_cilindro = 0;
   }
 
   start() {
@@ -35,10 +47,10 @@ export class GrafcetEngine {
     this.emit();
 
     this.intervalo = setInterval(() => {
-      if (this.pausado) return;
       const ahora = performance.now();
       const deltaTime = (ahora - this.ultimoTiempo) / 1000;
       this.ultimoTiempo = ahora;
+      if (this.pausado) return;
       this.ciclo(deltaTime);
     }, 50);
   }
@@ -48,11 +60,14 @@ export class GrafcetEngine {
   reset() { this.stop(); this.init(); this.actualizarSalidas(); this.emit(); }
 
   ciclo(deltaTime) {
-    // Si ya hemos procesado 10 cajas, no hacemos nada más
+    // Si ya hemos procesado 10 cajas, detenemos la máquina
     if (IO.contador1 + IO.contador2 >= IO.lote_objetivo) {
-        IO.lote_completo = true;
-        IO.motor_cinta = false;
-        IO.cilindro_extendido = false;
+        if (!IO.lote_completo) {
+          IO.lote_completo = true;
+          IO.motor_cinta = false;
+          IO.cilindro_extendido = false;
+          this.emit(); // Refresca la interfaz (Lote completo)
+        }
     }
 
     let nuevasEtapas = new Set(this.etapasActivas);
@@ -65,6 +80,11 @@ export class GrafcetEngine {
         if (conexionOrigen) {
             let resultado = false;
             if (t.condicion && t.condicion.trim() !== '') {
+            const expresion = t.condicion.trim();
+            if (expresion.toUpperCase() === 'TRUE') {
+                // Condición permanente (equivale a "siempre")
+                resultado = true;
+            } else {
             try {
                 const context = {
                 fotocelula: IO.fotocelula,
@@ -74,12 +94,14 @@ export class GrafcetEngine {
                 contador1: IO.contador1,
                 contador2: IO.contador2,
                 timer_cilindro: IO.timer_cilindro,
-                caja_empujada: IO.caja_empujada
+                caja_empujada: IO.caja_empujada,
+                timer_fin_caja: IO.timer_fin_caja
                 };
-                const evaluador = new Function(...Object.keys(context), `return ${t.condicion};`);
+                const evaluador = new Function(...Object.keys(context), `return ${expresion};`);
                 resultado = evaluador(...Object.values(context));
             } catch (e) {
                 console.warn(`Error en condición de ${t.id}: ${e.message}`);
+            }
             }
             }
 
@@ -94,15 +116,18 @@ export class GrafcetEngine {
     }
 
     if (huboCambio) {
-      this.etapaAnterior = new Set(this.etapasActivas);
+      const anteriores = new Set(this.etapasActivas);
+      this.etapaAnterior = anteriores;
       this.etapasActivas = nuevasEtapas;
-      
-      // Al entrar en E1 (nueva caja)
-      if (this.etapasActivas.has('E1')) {
-          IO.caja_empujada = false;
-          IO.caja_x = 120; 
-          IO.fotocelula = false;
-          IO.caja_grande = Math.random() > 0.5; // Aleatorio
+
+      // Al volver a la etapa inicial se genera una caja nueva
+      const inicial = GrafcetModel.etapas.find(e => e.inicial);
+      const vuelveAlInicio = inicial
+        && this.etapasActivas.has(inicial.id)
+        && !anteriores.has(inicial.id);
+
+      if (vuelveAlInicio) {
+        this.reiniciarCaja();
       }
 
       this.actualizarSalidas();
@@ -137,32 +162,34 @@ export class GrafcetEngine {
   }
 
   actualizarFisica(dt) {
-    if (IO.motor_cinta && !IO.caja_empujada && IO.caja_x < 340) {
-      IO.caja_x += 60 * dt; 
+    // Movimiento de la cinta principal (hasta el pistón)
+    if (IO.motor_cinta && !IO.caja_empujada && IO.caja_x < 400) {
+      IO.caja_x += 60 * dt;
+    }
+
+    // Fotocélula: ventana de detección delante del pistón
+    IO.fotocelula = IO.caja_x >= 340 && IO.caja_x < 360;
+
+    // Caja GRANDE: el pistón la empuja hacia el contenedor azul
+    if (IO.cilindro_extendido && IO.caja_grande && !IO.caja_empujada) {
+      IO.timer_cilindro += dt;
       if (IO.caja_x >= 340) {
-        IO.caja_x = 340;
-        IO.fotocelula = true; 
+        IO.caja_x += 100 * dt;
+        if (IO.caja_x >= 520) {
+          IO.caja_x = 520;
+          IO.caja_empujada = true;
+        }
       }
-    } else if (!IO.motor_cinta && IO.caja_x < 340) {
-        IO.fotocelula = false;
-    }
-
-    if (IO.cilindro_extendido && IO.caja_grande) {
-       IO.timer_cilindro += dt; 
-       if (IO.caja_x >= 300 && !IO.caja_empujada) {
-           IO.caja_x += 100 * dt; 
-           if (IO.caja_x > 520) {
-             IO.caja_x = 520;
-             IO.caja_empujada = true; 
-             IO.timer_check = 1.0; 
-           }
-       }
     } else {
-       IO.timer_cilindro = 0; 
+      IO.timer_cilindro = 0;
     }
 
-    if (IO.timer_check > 0) {
-        IO.timer_check -= dt;
+    // Caja PEQUEÑA: llega al final de la cinta y se contabiliza tras 1 s
+    if (!IO.caja_grande && !IO.caja_empujada && IO.caja_x >= 400) {
+      IO.timer_fin_caja += dt;
+      if (IO.timer_fin_caja > 1.0) {
+        IO.caja_empujada = true;
+      }
     }
   }
 }

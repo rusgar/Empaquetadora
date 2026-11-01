@@ -47,6 +47,21 @@ export function renderEmpaquetadora(container) {
   `;
 }
 
+const lerp = (a, b, t) => a + (b - a) * t;
+const clamp01 = (v) => Math.max(0, Math.min(1, v));
+
+// Puntos del recorrido de la caja (coordenadas del SVG)
+const RUTA = {
+  inicio: { x: 150, y: 160 },          // vértice izquierdo de la cinta principal
+  piston: { x: 300, y: 85 },           // pistón / bifurcación
+  verticeDerecho: { x: 450, y: 160 },  // vértice derecho de la cinta principal
+  grandes: { x: 120, y: 200 },         // centro del contenedor azul
+  pequenas: { x: 480, y: 200 }         // centro del contenedor amarillo
+};
+
+// La caja se dibuja con su centro desplazado respecto al origen local
+const CAJA_OFFSET = { x: 15, y: 22 };
+
 export function updateEmpaquetadora() {
   const caja = document.getElementById('caja');
   const vastago = document.getElementById('vastago');
@@ -55,12 +70,29 @@ export function updateEmpaquetadora() {
 
   // MOVIMIENTO
   if (caja) {
-    let x = 150 + (IO.caja_x - 120) * 0.8; // Ajuste de escala
-    let y = 160 - ((IO.caja_x - 120) * 0.4);
+    let x, y;
 
-    if (IO.caja_empujada) { x -= 50; y -= 25; } // Desvío visual
+    if (IO.caja_grande && (IO.cilindro_extendido || IO.caja_empujada)) {
+      // Caja grande: el pistón la desvía hacia el contenedor azul
+      const p = clamp01((IO.caja_x - 340) / (520 - 340));
+      x = lerp(RUTA.piston.x, RUTA.grandes.x, p);
+      y = lerp(RUTA.piston.y, RUTA.grandes.y, p);
+    } else if (!IO.caja_grande && IO.caja_x > 340) {
+      // Caja pequeña: sigue hasta el vértice derecho y entra en el contenedor
+      const p1 = clamp01((IO.caja_x - 340) / (400 - 340));
+      const px = lerp(RUTA.piston.x, RUTA.verticeDerecho.x, p1);
+      const py = lerp(RUTA.piston.y, RUTA.verticeDerecho.y, p1);
+      const p2 = clamp01(IO.timer_fin_caja / 1.0);
+      x = lerp(px, RUTA.pequenas.x, p2);
+      y = lerp(py, RUTA.pequenas.y, p2);
+    } else {
+      // Tramo común: desde el inicio hasta el pistón
+      const p = clamp01((IO.caja_x - 120) / (340 - 120));
+      x = lerp(RUTA.inicio.x, RUTA.piston.x, p);
+      y = lerp(RUTA.inicio.y, RUTA.piston.y, p);
+    }
 
-    caja.setAttribute('transform', `translate(${x}, ${y})`);
+    caja.setAttribute('transform', `translate(${x - CAJA_OFFSET.x}, ${y - CAJA_OFFSET.y})`);
     
     // COLOR DE LA CAJA (Azul si es grande, Amarillo si es pequeña)
     const colorBase = IO.caja_grande ? '#3b82f6' : '#f59e0b';
