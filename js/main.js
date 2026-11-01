@@ -30,33 +30,41 @@ document.addEventListener('DOMContentLoaded', () => {
     actualizarMetricas();
   });
 
-  // 5. TRUCO DE DESARROLLO: Cargar GRAFCET de prueba si está vacío
-    // 5. TRUCO DE DESARROLLO: Cargar GRAFCET de prueba si está vacío
+  // TRUCO DE DESARROLLO: Nuevo GRAFCET de prueba
   if (GrafcetModel.etapas.length === 0) {
-    const e1 = GrafcetModel.agregarEtapa(100, 120, true);
+    const e1 = GrafcetModel.agregarEtapa(100, 100, true);
     e1.acciones = ['motor_cinta=1'];
     
-    const e3 = GrafcetModel.agregarEtapa(300, 120, false);
+    // Bifurcación 1: Caja grande
+    const t2 = GrafcetModel.agregarTransicion(200, 150);
+    t2.condicion = 'fotocelula==true && caja_grande==true';
+    const e3 = GrafcetModel.agregarEtapa(300, 100, false);
     e3.acciones = ['motor_cinta=0', 'cilindro=1'];
-    
-    const e5 = GrafcetModel.agregarEtapa(500, 120, false);
-    e5.acciones = ['cilindro=0', 'contador+1'];
+    const t4 = GrafcetModel.agregarTransicion(400, 150);
+    t4.condicion = 'caja_empujada == true';
+    const e5 = GrafcetModel.agregarEtapa(500, 100, false);
+    e5.acciones = ['cilindro=0', 'contador1+1'];
 
-    const t2 = GrafcetModel.agregarTransicion(200, 170);
-    t2.condicion = 'fotocelula==true';
-    
-    const t4 = GrafcetModel.agregarTransicion(400, 170);
-     t4.condicion = 'caja_empujada == true'; 
-    
-    const t6 = GrafcetModel.agregarTransicion(600, 170);
-    t6.condicion = 'contador<10';
+    // Bifurcación 2: Caja pequeña
+    const t6 = GrafcetModel.agregarTransicion(200, 250);
+    t6.condicion = 'fotocelula==true && caja_grande==false';
+    const e7 = GrafcetModel.agregarEtapa(300, 200, false);
+    e7.acciones = ['motor_cinta=1'];
+    const t8 = GrafcetModel.agregarTransicion(400, 250);
+    t8.condicion = 'fotocelula_final==true';
+    const e9 = GrafcetModel.agregarEtapa(500, 200, false);
+    e9.acciones = ['contador2+1'];
 
+    // Conectar
     GrafcetModel.agregarConexion(e1.id, t2.id);
     GrafcetModel.agregarConexion(t2.id, e3.id);
     GrafcetModel.agregarConexion(e3.id, t4.id);
     GrafcetModel.agregarConexion(t4.id, e5.id);
-    GrafcetModel.agregarConexion(e5.id, t6.id);
-    GrafcetModel.agregarConexion(t6.id, e1.id);
+    
+    GrafcetModel.agregarConexion(e1.id, t6.id);
+    GrafcetModel.agregarConexion(t6.id, e7.id);
+    GrafcetModel.agregarConexion(e7.id, t8.id);
+    GrafcetModel.agregarConexion(t8.id, e9.id);
 
     editor.render();
   }

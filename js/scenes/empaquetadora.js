@@ -1,30 +1,53 @@
 import { IO } from '../core/ioModel.js';
 
 export function renderEmpaquetadora(container) {
+  // Reescalamos el viewBox para que quepa la vista isométrica
   container.innerHTML = `
-    <svg id="svg-escena" viewBox="0 0 600 260" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-      <rect x="0" y="220" width="600" height="40" fill="#1e293b"/>
-      <rect x="40" y="190" width="360" height="20" rx="6" fill="#475569"/>
-      <circle cx="60" cy="200" r="10" fill="#334155"/>
-      <circle cx="380" cy="200" r="10" fill="#334155"/>
+    <svg id="svg-escena" viewBox="0 0 800 400" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
       
-      <!-- Caja -->
-      <rect id="caja" x="120" y="160" width="40" height="30" fill="#f59e0b" stroke="#0f172a" stroke-width="2"/>
+      <!-- Suelo -->
+      <polygon points="400,50 780,250 400,450 20,250" fill="#1e293b" />
       
-      <!-- Check -->
-      <circle id="circulo-check" cx="140" cy="175" r="18" fill="#22c55e" style="display:none;" />
-      <text id="check-caja" x="140" y="182" font-size="22" fill="#fff" text-anchor="middle" font-weight="bold" style="display:none;">✓</text>
+      <!-- Cinta Principal (Línea central) -->
+      <polygon points="200,250 400,150 600,250 400,350" fill="#334155" stroke="#475569" stroke-width="2" />
+      
+      <!-- Cinta Secundaria A (Desvío Izquierda) -->
+      <polygon points="350,275 250,325 150,275 250,225" fill="#334155" stroke="#475569" stroke-width="2" />
+      
+      <!-- Cinta Secundaria B (Sigue Recto) -->
+      <polygon points="450,275 550,325 650,275 550,225" fill="#334155" stroke="#475569" stroke-width="2" />
 
       <!-- Fotocélula -->
-      <rect x="300" y="150" width="8" height="40" fill="#38bdf8"/>
-      <line id="haz-foto" x1="308" y1="170" x2="340" y2="170" stroke="#38bdf8" stroke-dasharray="4 3"/>
+      <rect x="380" y="200" width="40" height="4" fill="#38bdf8" transform="rotate(-26.5 400 200)"/>
       
-      <!-- Cilindro -->
-      <rect x="420" y="170" width="30" height="40" fill="#64748b"/>
-      <rect id="vastago" x="450" y="185" width="40" height="10" fill="#94a3b8"/>
-      
-      <!-- Bandeja -->
-      <rect x="500" y="180" width="80" height="30" rx="4" fill="#334155" stroke="#475569"/>
+      <!-- Pistón Empujador -->
+      <g id="piston" transform="translate(400, 150)">
+         <rect x="-15" y="0" width="30" height="40" fill="#64748b" rx="4"/>
+         <rect id="vastago" x="-5" y="40" width="10" height="30" fill="#94a3b8"/>
+      </g>
+
+      <!-- Contenedor 1 (Final Cinta A) -->
+      <g id="contenedor1" transform="translate(120, 250)">
+        <polygon points="0,40 30,55 60,40 30,25" fill="#0f172a" stroke="#22c55e" stroke-width="2"/>
+        <text x="30" y="45" fill="#22c55e" font-size="12" text-anchor="middle" font-weight="bold">CAJA 1</text>
+      </g>
+
+      <!-- Contenedor 2 (Final Cinta B) -->
+      <g id="contenedor2" transform="translate(620, 250)">
+        <polygon points="0,40 30,55 60,40 30,25" fill="#0f172a" stroke="#22c55e" stroke-width="2"/>
+        <text x="30" y="45" fill="#22c55e" font-size="12" text-anchor="middle" font-weight="bold">CAJA 2</text>
+      </g>
+
+      <!-- Caja Física -->
+      <g id="caja" transform="translate(200, 250)">
+        <polygon points="0,20 20,30 40,20 20,10" fill="#f59e0b" />
+        <polygon points="0,20 0,40 20,50 20,30" fill="#d97706" />
+        <polygon points="20,30 40,20 40,40 20,50" fill="#b45309" />
+        <text id="caja-texto" x="20" y="38" fill="#fff" font-size="10" text-anchor="middle" style="display:none;">✓</text>
+      </g>
+
+      <!-- Efecto Check -->
+      <text id="check-flotante" x="0" y="0" fill="#22c55e" font-size="24" font-weight="bold" style="display:none;">✓</text>
     </svg>
   `;
 }
@@ -32,38 +55,42 @@ export function renderEmpaquetadora(container) {
 export function updateEmpaquetadora() {
   const caja = document.getElementById('caja');
   const vastago = document.getElementById('vastago');
-  const haz = document.getElementById('haz-foto');
-  const check = document.getElementById('check-caja');
-  const circuloCheck = document.getElementById('circulo-check');
+  const checkFlotante = document.getElementById('check-flotante');
 
+  // Movimiento de la caja (Simulando la perspectiva)
   if (caja) {
-    caja.setAttribute('x', IO.caja_x);
+    // Movimiento en X e Y para simular la diagonal
+    // IO.caja_x va de 120 a 500 en la lógica, lo mapeamos a la diagonal
+    let x = 200 + (IO.caja_x - 120); 
+    let y = 250 - ((IO.caja_x - 120) * 0.5); // Sube en Y mientras avanza en X
+
+    // Si está empujada, la movemos hacia la cinta izquierda (A)
+    if (IO.caja_empujada) {
+       x -= 100;
+       y -= 50;
+    }
+
+    caja.setAttribute('transform', `translate(${x}, ${y})`);
   }
   
   if (vastago) {
     if (IO.cilindro_extendido) {
-      vastago.setAttribute('x', '400');
+      vastago.setAttribute('height', '60');
+      vastago.setAttribute('fill', '#ef4444'); // Rojo cuando empuja
     } else {
-      vastago.setAttribute('x', '450');
+      vastago.setAttribute('height', '30');
+      vastago.setAttribute('fill', '#94a3b8');
     }
   }
 
-  if (haz) {
-    haz.setAttribute('stroke', IO.fotocelula ? '#ef4444' : '#38bdf8');
-    haz.setAttribute('stroke-width', IO.fotocelula ? '3' : '1');
-  }
-
-  if (check && circuloCheck) {
+  // Mostrar check flotante cuando se ha empujado
+  if (checkFlotante) {
     if (IO.timer_check > 0) {
-      check.style.display = 'block';
-      circuloCheck.style.display = 'block';
-      
-      const checkX = IO.caja_x + 20;
-      check.setAttribute('x', checkX);
-      circuloCheck.setAttribute('cx', checkX);
+      checkFlotante.style.display = 'block';
+      checkFlotante.setAttribute('x', IO.caja_x + 150);
+      checkFlotante.setAttribute('y', 200);
     } else {
-      check.style.display = 'none';
-      circuloCheck.style.display = 'none';
+      checkFlotante.style.display = 'none';
     }
   }
 }

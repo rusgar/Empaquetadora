@@ -37,11 +37,11 @@
 
 /* LA ESCENA OCUPA EL 35% Y EL EDITOR EL 65% */
 .bloque-escena {
-  flex: 3.5; /* Proporción más pequeña */
-  min-height: 120px;
+  flex: 4.5; /* Más altura para la vista isométrica */
+  min-height: 250px;
 }
 .bloque-editor {
-  flex: 6.5; /* Proporción más grande */
+  flex: 5.5; 
   min-height: 250px;
 }
 
