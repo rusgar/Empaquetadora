@@ -37,5 +37,27 @@ export const GrafcetModel = {
 
   getElemento(id) {
     return this.etapas.find(e => e.id === id) || this.transiciones.find(t => t.id === id);
+  },
+    exportarJSON() {
+    return JSON.stringify({
+      etapas: this.etapas,
+      transiciones: this.transiciones,
+      conexiones: this.conexiones,
+      nextId: this._nextId
+    }, null, 2);
+  },
+
+  importarJSON(jsonString) {
+    try {
+      const data = JSON.parse(jsonString);
+      this.etapas = data.etapas || [];
+      this.transiciones = data.transiciones || [];
+      this.conexiones = data.conexiones || [];
+      this._nextId = data.nextId || 1;
+      return true;
+    } catch (e) {
+      console.error("Error al importar JSON", e);
+      return false;
+    }
   }
 };

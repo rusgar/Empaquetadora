@@ -65,13 +65,20 @@
     </section>
   </main>
 
-  <footer class="toolbar">
+   <footer class="toolbar">
     <button id="btn-run" class="btn btn-primary">▶ RUN</button>
     <button id="btn-pause" class="btn">⏸ PAUSE</button>
     <button id="btn-stop" class="btn">⏹ STOP</button>
     <button id="btn-reset" class="btn">🔄 RESET</button>
     <button id="btn-paso" class="btn">⏭ PASO</button>
+    
     <span class="spacer"></span>
+    
+    <!-- NUEVOS BOTONES DEL PASO 5 -->
+    <button id="btn-importar" class="btn">📂 Cargar JSON</button>
+    <input type="file" id="file-input" accept=".json" style="display: none;">
+    <button id="btn-exportar" class="btn">💾 Guardar JSON</button>
+    
     <button id="btn-entregar" class="btn btn-accent">📥 ENTREGAR</button>
     <button id="btn-docente" class="btn btn-ghost">🔑 DOCENTE</button>
   </footer>

@@ -125,4 +125,44 @@ document.addEventListener('DOMContentLoaded', () => {
   // Inicializar
   actualizarMetricas();
   console.log('[Desarrollo] Todo listo. GRAFCET de prueba cargado.');
+    // --- LÓGICA GUARDAR Y CARGAR (PASO 5) ---
+  document.getElementById('btn-exportar').addEventListener('click', () => {
+    const dataStr = GrafcetModel.exportarJSON();
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `grafcet_empaquetadora.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  const fileInput = document.getElementById('file-input');
+  document.getElementById('btn-importar').addEventListener('click', () => {
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const exito = GrafcetModel.importarJSON(event.target.result);
+      if (exito) {
+        engine.reset(); 
+        IO.reset();
+        editor.render(); 
+        editor.setEtapasActivas(new Set());
+        updateEmpaquetadora();
+        actualizarMetricas();
+        alert("✅ GRAFCET cargado correctamente.");
+      } else {
+        alert("❌ Error al leer el archivo JSON.");
+      }
+    };
+    reader.readAsText(file);
+    fileInput.value = ''; 
+  });
+
 });
