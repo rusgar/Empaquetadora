@@ -26,8 +26,13 @@ document.addEventListener('DOMContentLoaded', () => {
     actualizarMetricas();
   });
 
-  // GRAFCET DE PRUEBA (Sistema completo: 3 formas × 3 colores)
-  if (GrafcetModel.etapas.length === 0) {
+  // GRAFCET DE EJEMPLO (Sistema completo: 3 formas × 3 colores)
+  // Se carga solo con el botón DOCENTE, no al iniciar. El alumno empieza vacío.
+  function cargarGrafcetEjemplo() {
+    GrafcetModel.etapas = [];
+    GrafcetModel.transiciones = [];
+    GrafcetModel.conexiones = [];
+    GrafcetModel._nextId = 1;
     const e1 = GrafcetModel.agregarEtapa(60, 400, true);
     e1.acciones = ['motor_cinta=1'];
 
@@ -167,6 +172,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     editor.render();
   }
+
+  // Botón DOCENTE: carga el GRAFCET de ejemplo completo
+  document.getElementById('btn-docente').addEventListener('click', () => {
+    cargarGrafcetEjemplo();
+    IO.reset();
+    engine.reset();
+    editor.setEtapasActivas(new Set());
+    updateEmpaquetadora();
+    actualizarMetricas();
+    // alert('✅ GRAFCET de ejemplo (docente) cargado.');
+  });
+
+  // Botón ENTREGAR: exporta el trabajo del alumno
+  document.getElementById('btn-entregar').addEventListener('click', () => {
+    const dataStr = GrafcetModel.exportarJSON();
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `grafcet_alumno.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
 
   // Pestañas: alternar entre Escena y Editor
   document.querySelectorAll('.tab-btn').forEach(btn => {
