@@ -124,7 +124,7 @@ function actualizarMetricas() {
     
     // Suma total de cajas
     const totalCajas = IO.contadores.reduce((a, b) => a + b, 0);
-    document.getElementById('m-cajas').innerHTML = `C1:${IO.contadores[0]} C2:${IO.contadores[1]} C3:${IO.contadores[2]} C4:${IO.contadores[3]} C5:${IO.contadores[4]} (<b>${totalCajas}/15</b>)`;
+    document.getElementById('m-cajas').innerHTML = `C1:${IO.contadores[0]} C2:${IO.contadores[1]} C3:${IO.contadores[2]} C4:${IO.contadores[3]} C5:${IO.contadores[4]} (<b>${totalCajas}/10</b>)`;
     
     if (engine.enEjecucion) {
       document.getElementById('e-arranque').innerHTML = '✅ Arranque';

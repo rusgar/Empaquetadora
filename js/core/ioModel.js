@@ -16,14 +16,14 @@ export const IO = {
 
   // Contadores: [forma][color] -> índice = forma*5 + color
   contadores: new Array(15).fill(0),
-  lote_objetivo: 15,
+  lote_objetivo: 10,
   lote_completo: false,
 
   reset() {
     this.fotocelula1 = false;
     this.fotocelula2 = false;
     this.forma = Math.floor(Math.random() * 3);
-    this.color = Math.floor(Math.random() * 5);
+    this.color = Math.floor(Math.random() * 3);
     this.motor_cinta = false;
     this.fase = 0;
     this.progreso = 0;

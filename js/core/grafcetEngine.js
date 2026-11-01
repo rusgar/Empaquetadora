@@ -22,7 +22,7 @@ export class GrafcetEngine {
       this.etapasActivas.add(inicial.id);
       this.etapaAnterior = new Set(this.etapasActivas);
       IO.forma = Math.floor(Math.random() * 3);
-      IO.color = Math.floor(Math.random() * 5);
+      IO.color = Math.floor(Math.random() * 3);
       IO.fase = 0;
       IO.progreso = 0;
       IO.caja_empujada = false;
@@ -36,7 +36,7 @@ export class GrafcetEngine {
 
   reiniciarCaja() {
     IO.forma = Math.floor(Math.random() * 3);
-    IO.color = Math.floor(Math.random() * 5);
+    IO.color = Math.floor(Math.random() * 3);
     IO.fase = 0;
     IO.progreso = 0;
     IO.caja_empujada = false;
@@ -180,7 +180,7 @@ export class GrafcetEngine {
 
     // Fotocélulas
     IO.fotocelula1 = (IO.fase === 0 && IO.progreso >= 0.9) || IO.fase === 1;
-    IO.fotocelula2 = IO.forma === 0 && ((IO.fase === 2 && IO.progreso >= 0.9) || IO.fase === 3);
+    IO.fotocelula2 = (IO.fase === 2 && IO.progreso >= 0.9) || IO.fase === 3;
 
     // Movimiento
     if (IO.motor_cinta && !IO.caja_empujada && IO.fase !== 1 && IO.fase !== 3 && IO.fase !== 5) {
@@ -193,14 +193,8 @@ export class GrafcetEngine {
       IO.progreso = 1;
     }
     if (IO.fase === 2 && IO.progreso >= 1) {
-      if (IO.forma === 0) {
-        IO.fase = 3;
-        IO.progreso = 1;
-      } else {
-        IO.fase = 5;
-        IO.progreso = 1;
-        IO.caja_empujada = true;
-      }
+      IO.fase = 3;
+      IO.progreso = 1;
     }
     if (IO.fase === 4 && IO.progreso >= 1) {
       IO.fase = 5;
