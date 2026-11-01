@@ -23,8 +23,8 @@
 .panel-centro { display: flex; flex-direction: column; gap: .75rem; min-height: 0; }
 
 /* La escena gana espacio; el editor queda limpio y compacto */
-.bloque-escena { flex: 6; min-height: 280px; }
-.bloque-editor { flex: 4; min-height: 260px; }
+.bloque-escena { flex: 8; min-height: 400px; }
+.bloque-editor { flex: 2; min-height: 180px; }
 
 .bloque {
   background: var(--bg-card); border-radius: var(--radius);

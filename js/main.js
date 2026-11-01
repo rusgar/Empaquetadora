@@ -52,31 +52,69 @@ document.addEventListener('DOMContentLoaded', () => {
     const e9 = GrafcetModel.agregarEtapa(370, 540, false);
     e9.acciones = ['motor_cinta=1', 'contador3+1'];
 
-    // ---- FORMA 1: TRIÁNGULO (sin desviador 2) ----
+    // ---- FORMA 1: TRIÁNGULO (desviador 2 por color) ----
     const t10 = GrafcetModel.agregarTransicion(130, 500);
     t10.condicion = 'fotocelula1==true && forma==1';
-    const e11 = GrafcetModel.agregarEtapa(210, 540, false);
-    e11.acciones = ['motor_cinta=1', 'contador4+1'];
+    const e11 = GrafcetModel.agregarEtapa(210, 480, false);
+    e11.acciones = ['motor_cinta=1'];
 
-    // ---- FORMA 2: CÍRCULO (sin desviador 2) ----
-    const t12 = GrafcetModel.agregarTransicion(130, 600);
-    t12.condicion = 'fotocelula1==true && forma==2';
-    const e13 = GrafcetModel.agregarEtapa(210, 640, false);
-    e13.acciones = ['motor_cinta=1', 'contador5+1'];
+    const t12 = GrafcetModel.agregarTransicion(290, 460);
+    t12.condicion = 'fotocelula2==true && color==0';
+    const e13 = GrafcetModel.agregarEtapa(370, 440, false);
+    e13.acciones = ['motor_cinta=1', 'contador4+1'];
+
+    const t14 = GrafcetModel.agregarTransicion(290, 500);
+    t14.condicion = 'fotocelula2==true && color==1';
+    const e15 = GrafcetModel.agregarEtapa(370, 500, false);
+    e15.acciones = ['motor_cinta=1', 'contador5+1'];
+
+    const t16 = GrafcetModel.agregarTransicion(290, 540);
+    t16.condicion = 'fotocelula2==true && color==2';
+    const e17 = GrafcetModel.agregarEtapa(370, 580, false);
+    e17.acciones = ['motor_cinta=1', 'contador6+1'];
+
+    // ---- FORMA 2: CÍRCULO (desviador 2 por color) ----
+    const t18 = GrafcetModel.agregarTransicion(130, 620);
+    t18.condicion = 'fotocelula1==true && forma==2';
+    const e19 = GrafcetModel.agregarEtapa(210, 660, false);
+    e19.acciones = ['motor_cinta=1'];
+
+    const t20 = GrafcetModel.agregarTransicion(290, 600);
+    t20.condicion = 'fotocelula2==true && color==0';
+    const e21 = GrafcetModel.agregarEtapa(370, 580, false);
+    e21.acciones = ['motor_cinta=1', 'contador7+1'];
+
+    const t22 = GrafcetModel.agregarTransicion(290, 640);
+    t22.condicion = 'fotocelula2==true && color==1';
+    const e23 = GrafcetModel.agregarEtapa(370, 640, false);
+    e23.acciones = ['motor_cinta=1', 'contador8+1'];
+
+    const t24 = GrafcetModel.agregarTransicion(290, 680);
+    t24.condicion = 'fotocelula2==true && color==2';
+    const e25 = GrafcetModel.agregarEtapa(370, 720, false);
+    e25.acciones = ['motor_cinta=1', 'contador9+1'];
 
     // Retornos al inicio (convergencia OR)
-    const t14 = GrafcetModel.agregarTransicion(450, 300);
-    t14.condicion = 'caja_empujada == true';
-    const t15 = GrafcetModel.agregarTransicion(450, 400);
-    t15.condicion = 'caja_empujada == true';
-    const t16 = GrafcetModel.agregarTransicion(450, 500);
-    t16.condicion = 'caja_empujada == true';
-    const t17 = GrafcetModel.agregarTransicion(450, 540);
-    t17.condicion = 'caja_empujada == true';
-    const t18 = GrafcetModel.agregarTransicion(450, 640);
-    t18.condicion = 'caja_empujada == true';
+    const t26 = GrafcetModel.agregarTransicion(450, 160);
+    t26.condicion = 'caja_empujada == true';
+    const t27 = GrafcetModel.agregarTransicion(450, 200);
+    t27.condicion = 'caja_empujada == true';
+    const t28 = GrafcetModel.agregarTransicion(450, 280);
+    t28.condicion = 'caja_empujada == true';
+    const t29 = GrafcetModel.agregarTransicion(450, 390);
+    t29.condicion = 'caja_empujada == true';
+    const t30 = GrafcetModel.agregarTransicion(450, 440);
+    t30.condicion = 'caja_empujada == true';
+    const t31 = GrafcetModel.agregarTransicion(450, 500);
+    t31.condicion = 'caja_empujada == true';
+    const t32 = GrafcetModel.agregarTransicion(450, 580);
+    t32.condicion = 'caja_empujada == true';
+    const t33 = GrafcetModel.agregarTransicion(450, 640);
+    t33.condicion = 'caja_empujada == true';
+    const t34 = GrafcetModel.agregarTransicion(450, 720);
+    t34.condicion = 'caja_empujada == true';
 
-    // Conexiones
+    // Conexiones (forma 0: caja)
     GrafcetModel.agregarConexion(e1.id, t2.id);
     GrafcetModel.agregarConexion(t2.id, e3.id);
     GrafcetModel.agregarConexion(e3.id, t4.id);
@@ -86,23 +124,46 @@ document.addEventListener('DOMContentLoaded', () => {
     GrafcetModel.agregarConexion(e3.id, t8.id);
     GrafcetModel.agregarConexion(t8.id, e9.id);
 
+    // Forma 1: triángulo
     GrafcetModel.agregarConexion(e1.id, t10.id);
     GrafcetModel.agregarConexion(t10.id, e11.id);
-
-    GrafcetModel.agregarConexion(e1.id, t12.id);
+    GrafcetModel.agregarConexion(e11.id, t12.id);
     GrafcetModel.agregarConexion(t12.id, e13.id);
+    GrafcetModel.agregarConexion(e11.id, t14.id);
+    GrafcetModel.agregarConexion(t14.id, e15.id);
+    GrafcetModel.agregarConexion(e11.id, t16.id);
+    GrafcetModel.agregarConexion(t16.id, e17.id);
 
-    GrafcetModel.agregarConexion(e5.id, t14.id);
-    GrafcetModel.agregarConexion(e7.id, t15.id);
-    GrafcetModel.agregarConexion(e9.id, t16.id);
-    GrafcetModel.agregarConexion(e11.id, t17.id);
-    GrafcetModel.agregarConexion(e13.id, t18.id);
+    // Forma 2: círculo
+    GrafcetModel.agregarConexion(e1.id, t18.id);
+    GrafcetModel.agregarConexion(t18.id, e19.id);
+    GrafcetModel.agregarConexion(e19.id, t20.id);
+    GrafcetModel.agregarConexion(t20.id, e21.id);
+    GrafcetModel.agregarConexion(e19.id, t22.id);
+    GrafcetModel.agregarConexion(t22.id, e23.id);
+    GrafcetModel.agregarConexion(e19.id, t24.id);
+    GrafcetModel.agregarConexion(t24.id, e25.id);
 
-    GrafcetModel.agregarConexion(t14.id, e1.id);
-    GrafcetModel.agregarConexion(t15.id, e1.id);
-    GrafcetModel.agregarConexion(t16.id, e1.id);
-    GrafcetModel.agregarConexion(t17.id, e1.id);
-    GrafcetModel.agregarConexion(t18.id, e1.id);
+    // Retornos
+    GrafcetModel.agregarConexion(e5.id, t26.id);
+    GrafcetModel.agregarConexion(e7.id, t27.id);
+    GrafcetModel.agregarConexion(e9.id, t28.id);
+    GrafcetModel.agregarConexion(e13.id, t29.id);
+    GrafcetModel.agregarConexion(e15.id, t30.id);
+    GrafcetModel.agregarConexion(e17.id, t31.id);
+    GrafcetModel.agregarConexion(e21.id, t32.id);
+    GrafcetModel.agregarConexion(e23.id, t33.id);
+    GrafcetModel.agregarConexion(e25.id, t34.id);
+
+    GrafcetModel.agregarConexion(t26.id, e1.id);
+    GrafcetModel.agregarConexion(t27.id, e1.id);
+    GrafcetModel.agregarConexion(t28.id, e1.id);
+    GrafcetModel.agregarConexion(t29.id, e1.id);
+    GrafcetModel.agregarConexion(t30.id, e1.id);
+    GrafcetModel.agregarConexion(t31.id, e1.id);
+    GrafcetModel.agregarConexion(t32.id, e1.id);
+    GrafcetModel.agregarConexion(t33.id, e1.id);
+    GrafcetModel.agregarConexion(t34.id, e1.id);
 
     editor.render();
   }
