@@ -25,11 +25,11 @@ const SECUNDARIAS = [
 // Posiciones de las terciarias: TERCIARIAS[forma][color] = {x, y}
 const TERCIARIAS = [
   // caja
-  [{ x: 950, y: 100 }, { x: 950, y: 200 }, { x: 950, y: 300 }],
+  [{ x: 1000, y: 100 }, { x: 1000, y: 200 }, { x: 1000, y: 300 }],
   // triángulo
-  [{ x: 950, y: 400 }, { x: 950, y: 500 }, { x: 950, y: 600 }],
+  [{ x: 1000, y: 400 }, { x: 1000, y: 500 }, { x: 1000, y: 600 }],
   // círculo
-  [{ x: 950, y: 700 }, { x: 950, y: 800 }, { x: 950, y: 900 }]
+  [{ x: 1000, y: 700 }, { x: 1000, y: 800 }, { x: 1000, y: 900 }]
 ];
 
 const SEC_COLORS = ['#f59e0b', '#a78bfa', '#38bdf8'];
@@ -138,15 +138,18 @@ export function renderEmpaquetadora(container) {
   svg += `<text x="350" y="386" fill="#38bdf8" font-size="13" text-anchor="middle" font-weight="bold">FC1</text>`;
   svg += `</g>`;
 
-  // Fotocélula 2
-  svg += `<g id="fotocelula2">`;
-  svg += `<rect x="642" y="146" width="16" height="34" rx="4" fill="#475569"/>`;
-  svg += `<rect x="642" y="220" width="16" height="34" rx="4" fill="#475569"/>`;
-  svg += `<circle id="foto2-led-sup" cx="650" cy="180" r="9" fill="#38bdf8"/>`;
-  svg += `<circle id="foto2-led-inf" cx="650" cy="220" r="9" fill="#38bdf8"/>`;
-  svg += `<line id="fotocelula2-beam" x1="650" y1="189" x2="650" y2="211" stroke="#38bdf8" stroke-width="3" stroke-dasharray="4 4" opacity="0.65"/>`;
-  svg += `<text x="650" y="136" fill="#38bdf8" font-size="13" text-anchor="middle" font-weight="bold">FC2</text>`;
-  svg += `</g>`;
+  // Fotocélula 2 (para cada secundaria)
+  for (let i = 0; i < 3; i++) {
+    const jy = secEnds[i][1];
+    svg += `<g id="fotocelula2-${i}">`;
+    svg += `<rect x="642" y="${jy - 54}" width="16" height="34" rx="4" fill="#475569"/>`;
+    svg += `<rect x="642" y="${jy + 20}" width="16" height="34" rx="4" fill="#475569"/>`;
+    svg += `<circle id="foto2-${i}-led-sup" cx="650" cy="${jy - 20}" r="9" fill="#38bdf8"/>`;
+    svg += `<circle id="foto2-${i}-led-inf" cx="650" cy="${jy + 20}" r="9" fill="#38bdf8"/>`;
+    svg += `<line id="fotocelula2-${i}-beam" x1="650" y1="${jy - 11}" x2="650" y2="${jy + 11}" stroke="#38bdf8" stroke-width="3" stroke-dasharray="4 4" opacity="0.65"/>`;
+    svg += `<text x="650" y="${jy - 64}" fill="#38bdf8" font-size="12" text-anchor="middle" font-weight="bold">FC2</text>`;
+    svg += `</g>`;
+  }
 
   // Contenedores terciarios (9: 3 formas × 3 colores)
   const terColors = ['#ef4444', '#3b82f6', '#22c55e'];
@@ -174,10 +177,6 @@ export function updateEmpaquetadora() {
   const foto1Beam = document.getElementById('fotocelula1-beam');
   const foto1LedSup = document.getElementById('foto1-led-sup');
   const foto1LedInf = document.getElementById('foto1-led-inf');
-  const foto2Beam = document.getElementById('fotocelula2-beam');
-  const foto2LedSup = document.getElementById('foto2-led-sup');
-  const foto2LedInf = document.getElementById('foto2-led-inf');
-  const foto2Group = document.getElementById('fotocelula2');
 
   // Actualizar forma del objeto en movimiento
   if (cajaContainer) {
@@ -205,7 +204,7 @@ export function updateEmpaquetadora() {
       const sec = SECUNDARIAS[IO.forma] || SECUNDARIAS[0];
       x = sec.x; y = sec.y;
     } else if (IO.fase === 4) {
-      const ter = TERCIARIAS[IO.forma] ? TERCIARIAS[IO.forma][IO.color] : null;
+      const ter = (TERCIARIAS[IO.forma] && TERCIARIAS[IO.forma][IO.color]) ? TERCIARIAS[IO.forma][IO.color] : null;
       const target = ter || SECUNDARIAS[IO.forma] || SECUNDARIAS[0];
       const sec = SECUNDARIAS[IO.forma] || SECUNDARIAS[0];
       const p = clamp01(IO.progreso);
@@ -234,10 +233,17 @@ export function updateEmpaquetadora() {
   if (foto1LedSup) foto1LedSup.setAttribute('fill', colorFoto1);
   if (foto1LedInf) foto1LedInf.setAttribute('fill', colorFoto1);
 
-  // FOTOCÉLULA 2
-  const esCaja = IO.forma === 0;
-  if (foto2Group) foto2Group.setAttribute('opacity', esCaja ? '1' : '0.2');
+  // FOTOCÉLULA 2 (visible según forma activa)
+  const foto2Group = document.getElementById(`fotocelula2-${IO.forma}`);
+  // Mostrar solo la fotocélula de la rama activa
+  for (let i = 0; i < 3; i++) {
+    const g = document.getElementById(`fotocelula2-${i}`);
+    if (g) g.setAttribute('opacity', i === IO.forma ? '1' : '0.15');
+  }
   const colorFoto2 = IO.fotocelula2 ? '#ef4444' : '#38bdf8';
+  const foto2Beam = IO.forma < 3 ? document.getElementById(`fotocelula2-${IO.forma}-beam`) : null;
+  const foto2LedSup = IO.forma < 3 ? document.getElementById(`foto2-${IO.forma}-led-sup`) : null;
+  const foto2LedInf = IO.forma < 3 ? document.getElementById(`foto2-${IO.forma}-led-inf`) : null;
   if (foto2Beam) {
     foto2Beam.setAttribute('stroke', colorFoto2);
     foto2Beam.setAttribute('stroke-width', IO.fotocelula2 ? '5' : '3');
@@ -268,6 +274,7 @@ export function updateEmpaquetadora() {
       cont.querySelectorAll('.caja-apilada').forEach(e => e.remove());
       const idx = f * 3 + c;
       const n = IO.contadores[idx] || 0;
+      const colores = COLORES[c];
       for (let i = 0; i < n; i++) {
         const forma = crearFormaSVG(f, c);
         const col = i % 3; const fila = Math.floor(i / 3);
