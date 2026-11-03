@@ -35,6 +35,10 @@ export const GrafcetModel = {
     return false;
   },
 
+  getElemento(id) {
+    return this.etapas.find(e => e.id === id) || this.transiciones.find(t => t.id === id);
+  },
+
   // Importar desde Draw.io (XML)
   importarDrawio(xmlString) {
     try {

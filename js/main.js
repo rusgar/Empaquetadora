@@ -194,6 +194,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (resp.ok) config = await resp.json();
     } catch (e) { config = null; }
 
+    // Credenciales por defecto si no hay config.json
+    if (!config) {
+      config = { docente: { usuario: 'docente', password: 'asturnet2026' } };
+    }
+
     const ok = config && config.docente &&
       user === config.docente.usuario && pass === config.docente.password;
 
