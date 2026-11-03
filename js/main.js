@@ -340,5 +340,32 @@ function actualizarMetricas() {
     fileInput.value = ''; 
   });
 
+  // Importar Draw.io
+  const fileInputDrawio = document.getElementById('file-input-drawio');
+  document.getElementById('btn-importar-drawio').addEventListener('click', () => { fileInputDrawio.click(); });
+
+  fileInputDrawio.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const exito = GrafcetModel.importarDrawio(event.target.result);
+      if (exito) {
+        IO.reset();
+        engine.reset();
+        editor.solicitarAjuste();
+        editor.render();
+        editor.setEtapasActivas(new Set());
+        updateEmpaquetadora();
+        actualizarMetricas();
+        alert('✅ GRAFCET importado desde Draw.io.');
+      } else {
+        alert('❌ Error al leer el archivo Draw.io.');
+      }
+    };
+    reader.readAsText(file);
+    fileInputDrawio.value = '';
+  });
+
   actualizarMetricas();
 });
