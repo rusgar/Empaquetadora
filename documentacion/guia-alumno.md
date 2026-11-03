@@ -1,7 +1,7 @@
 # Guía del Alumno — Ayuda para construir el GRAFCET
 
 > **Proyecto:** Estación Empaquetadora (ELEE018PO · Bloque 9)
-> **Objetivo:** Entender qué hace cada etapa y transición para construir el ejercicio completo.
+> **Objetivo:** Entender qué hace cada etapa y transición para construir el ejercicio por tu cuenta.
 
 ---
 
@@ -12,36 +12,26 @@ Una **cinta clasificadora** que procesa objetos (cajas, triángulos, círculos) 
 - Un pistón desviador.
 - Contadores de objetos clasificados.
 
+La máquina procesa objetos uno a uno: detecta el tipo, desvía a la rama correspondiente, cuenta y vuelve a empezar. Al llegar a 10 objetos, el lote se completa.
+
 ---
 
 ## 2. Qué es una Etapa (○)
 
 Una **etapa** es un estado de la máquina. Cuando está activa, ejecuta sus **acciones** (salidas).
 
-### Etapas del sistema
-
-| Etapa | Acción | Qué hace cuando está activa |
-|---|---|---|
-| E1 (inicio) | `motor_cinta=1` | Enciende la cinta para que avance la caja |
-| E3 (caja grande) | `motor_cinta=0`, `cilindro=1` | Para la cinta y extiende el pistón para desviar la caja |
-| E5 (caja grande fin) | `cilindro=0`, `contador1+1` | Retrae el pistón y suma 1 al contador de grandes |
-| E7 (caja pequeña) | `motor_cinta=1` | Sigue avanzando la cinta hasta el final |
-| E9 (caja pequeña fin) | `contador2+1` | Suma 1 al contador de pequeñas |
-
 ### Acciones disponibles
 
 | Acción | Efecto en la máquina |
 |---|---|
-| `motor_cinta=1` | La cinta avanza (la caja se mueve) |
+| `motor_cinta=1` | La cinta avanza (el objeto se mueve) |
 | `motor_cinta=0` | La cinta se para |
-| `cilindro=1` | El pistón se extiende (desvía la caja) |
+| `cilindro=1` | El pistón se extiende (desvía el objeto) |
 | `cilindro=0` | El pistón se retrae |
-| `contador1+1` | Suma 1 al contador 1 (cajas grandes) |
-| `contador2+1` | Suma 1 al contador 2 (cajas pequeñas) |
-| `contador3+1` | Suma 1 al contador 3 (cajas rojas) |
-| `contador4+1` | Suma 1 al contador 4 (cajas azules) |
-| `contador5+1` | Suma 1 al contador 5 (cajas verdes) |
-| `contador6+1`..`contador9+1` | Contadores adicionales |
+| `contador1+1` | Suma 1 al contador 1 |
+| `contador2+1` | Suma 1 al contador 2 |
+| ... | ... |
+| `contador9+1` | Suma 1 al contador 9 |
 
 ### Cómo añadir una acción
 1. Seleccionar la etapa en el lienzo.
@@ -54,29 +44,18 @@ Una **etapa** es un estado de la máquina. Cuando está activa, ejecuta sus **ac
 
 Una **transición** es la condición que permite pasar de una etapa a otra. Cuando la condición se cumple, la etapa actual se desactiva y la siguiente se activa.
 
-### Transiciones del sistema
-
-| Transición | Condición | Cuándo se dispara |
-|---|---|---|
-| T2 | `fotocelula==true && caja_grande==true` | Cuando la fotocélula detecta Y la caja es grande |
-| T4 | `caja_empujada == true` | Cuando la caja ha llegado al final (pistón) |
-| T6 | `fotocelula==true && caja_grande==false` | Cuando la fotocélula detecta Y la caja es pequeña |
-| T8 | `timer_fin_caja > 1.0` | Cuando han pasado más de 1 segundo |
-
 ### Variables disponibles (entradas)
 
 | Variable | Tipo | Significado |
 |---|---|---|
-| `fotocelula` | boolean | La fotocélula detecta un objeto |
-| `caja_grande` | boolean | La caja actual es grande (true) o pequeña (false) |
-| `caja_color` | number | Color de la caja: 0=rojo, 1=azul, 2=verde |
-| `forma` | number | Forma del objeto: 0=caja, 1=triángulo, 2=círculo |
-| `color` | number | Color del objeto: 0=rojo, 1=azul, 2=verde |
-| `caja_empujada` | boolean | La caja ha llegado al final de la cinta |
-| `timer_fin_caja` | number | Segundos desde que la caja llegó al final |
+| `fotocelula` / `fotocelula1` | boolean | La fotocélula detecta un objeto |
+| `fotocelula2` | boolean | Fotocélula del desviador 2 (color) |
+| `forma` | number | 0=caja, 1=triángulo, 2=círculo |
+| `color` / `caja_color` | number | 0=rojo, 1=azul, 2=verde |
+| `caja_grande` | boolean | La caja es grande (true) o pequeña (false) |
+| `caja_empujada` | boolean | El objeto ha llegado al final de la cinta |
+| `timer_fin_caja` | number | Segundos desde que el objeto llegó al final |
 | `motor_cinta` | boolean | Estado del motor (1=encendido, 0=apagado) |
-| `fotocelula1` | boolean | Fotocélula del desviador 1 (por forma) |
-| `fotocelula2` | boolean | Fotocélula del desviador 2 (por color) |
 
 ### Operadores disponibles
 
@@ -95,126 +74,45 @@ Una **transición** es la condición que permite pasar de una etapa a otra. Cuan
 1. Seleccionar la transición en el lienzo.
 2. En el inspector, escribir la condición en el campo de texto.
 3. O pulsar un botón de variable/operador/preset para insertarla.
-4. La condición se actualiza automáticamente.
 
 ### Presets (condiciones típicas)
 - `fotocelula==true && caja_grande==true` — fotocélula Y caja grande
 - `fotocelula==true && caja_grande==false` — fotocélula Y caja pequeña
-- `caja_empujada == true` — la caja ha llegado al final
+- `caja_empujada == true` — el objeto ha llegado al final
 - `timer_fin_caja > 1.0` — han pasado más de 1 segundo
+- `forma==0` / `forma==1` / `forma==2` — forma del objeto
+- `color==0` / `color==1` / `color==2` — color del objeto
+- `fotocelula1==true && forma==0` — fotocélula 1 Y forma caja
+- `fotocelula2==true && color==0` — fotocélula 2 Y color rojo
 - `TRUE` — siempre se dispara (transición incondicional)
 
 ---
 
-## 4. Cómo construir el ejercicio completo (paso a paso)
+## 4. Cómo funciona la escena
 
-### Paso 1: Primer ciclo (una caja, un contador)
-
-**Objetivo:** Crear un GRAFCET que mueva una caja y la cuente.
-
-```
-E1 (inicio) → T2 → E3 → T4 → E1
-```
-
-| Elemento | Acción / Condición |
-|---|---|
-| E1 | `motor_cinta=1` |
-| T2 | `fotocelula==true` |
-| E3 | `motor_cinta=0` |
-| T4 | `caja_empujada == true` |
-
-**Cómo hacerlo:**
-1. Pulsar **○ Etapa** → crea E1 (inicial, azul).
-2. Seleccionar E1 → inspector → añadir acción `motor_cinta=1`.
-3. Pulsar **→ Transición** → crea T2.
-4. Seleccionar T2 → inspector → condición `fotocelula==true`.
-5. Pulsar **○ Etapa** → crea E3.
-6. Seleccionar E3 → añadir acción `motor_cinta=0`.
-7. Pulsar **→ Transición** → crea T4.
-8. Seleccionar T4 → condición `caja_empujada == true`.
-9. Conectar: E1 → T2 → E3 → T4 → E1 (clic en cada elemento en orden).
-10. Pulsar RUN y verificar que la caja avanza y se cuenta.
-
-### Paso 2: Clasificación por tamaño (grande/pequeña)
-
-**Objetivo:** Añadir una rama para cajas grandes (con pistón) y otra para pequeñas.
-
-```
-E1 → T2 (grande) → E3 → T4 → E5 → T10 → E1
-E1 → T6 (pequeña) → E7 → T8 → E9 → T11 → E1
-```
-
-| Elemento | Acción / Condición |
-|---|---|
-| T2 | `fotocelula==true && caja_grande==true` |
-| E3 | `motor_cinta=0`, `cilindro=1` |
-| T4 | `caja_empujada == true` |
-| E5 | `cilindro=0`, `contador1+1` |
-| T6 | `fotocelula==true && caja_grande==false` |
-| E7 | `motor_cinta=1` |
-| T8 | `timer_fin_caja > 1.0` |
-| E9 | `contador2+1` |
-
-**Clave:** La condición `fotocelula==true && caja_grande==true` solo se cumple para cajas grandes. La otra (`caja_grande==false`) solo para pequeñas. Así se bifurca el flujo.
-
-### Paso 3: Clasificación por color (rojo/azul/verde)
-
-**Objetivo:** Añadir una rama para cada color.
-
-```
-E1 → T2 (rojo)  → E3 → T4 → E5 → T14 → E1
-E1 → T6 (azul)  → E7 → T8 → E9 → T15 → E1
-E1 → T10 (verde)→ E11 → T12 → E13 → T16 → E1
-```
-
-| Transición | Condición |
-|---|---|
-| T2 | `fotocelula==true && caja_color==0` |
-| T6 | `fotocelula==true && caja_color==1` |
-| T10 | `fotocelula==true && caja_color==2` |
-
-**Clave:** `caja_color` es 0=rojo, 1=azul, 2=verde. Cada transición solo se dispara para su color.
-
-### Paso 4: Sistema completo (3 formas × 3 colores)
-
-**Objetivo:** Añadir 3 formas (caja, triángulo, círculo) y 3 colores en cada una.
-
-```
-E1 → T2 (caja)      → E3 → T4 (rojo)   → E5 → T26 → E1
-                                 T6 (azul)  → E7 → T27 → E1
-                                 T8 (verde) → E9 → T28 → E1
-E1 → T10 (triángulo) → E11 → T12 (rojo)  → E13 → T29 → E1
-                                  T14 (azul) → E15 → T30 → E1
-                                  T16 (verde)→ E17 → T31 → E1
-E1 → T18 (círculo)   → E19 → T20 (rojo)  → E21 → T32 → E1
-                                  T22 (azul) → E23 → T33 → E1
-                                  T24 (verde)→ E25 → T34 → E1
-```
-
-**Variables por forma:**
-- `forma`: 0=caja, 1=triángulo, 2=círculo.
-- `color`: 0=rojo, 1=azul, 2=verde.
-- `fotocelula1`: fotocélula del desviador 1 (por forma).
-- `fotocelula2`: fotocélula del desviador 2 (por color).
-
-**Contadores:**
-- C1: caja-rojo, C2: caja-azul, C3: caja-verde
-- C4: triángulo-rojo, C5: triángulo-azul, C6: triángulo-verde
-- C7: círculo-rojo, C8: círculo-azul, C9: círculo-verde
-
----
-
-## 5. Cómo funciona la escena
-
-- La **caja** aparece **gris (indefinida)** en la cinta principal.
+- El **objeto** aparece **gris (indefinido)** en la cinta principal.
 - Al llegar a la **primera fotocélula**, se determina la forma (caja/triángulo/círculo) y se desvía a su rama.
 - Al llegar a la **segunda fotocélula**, se determina el color y se desvía a su contenedor.
 - Los **contenedores** se llenan visualmente con los objetos clasificados.
 - Los **contadores** (C1..C9) se incrementan según la ruta del objeto.
 
+### Contadores
+
+| Contador | Significado |
+|---|---|
+| C1 | Caja roja |
+| C2 | Caja azul |
+| C3 | Caja verde |
+| C4 | Triángulo rojo |
+| C5 | Triángulo azul |
+| C6 | Triángulo verde |
+| C7 | Círculo rojo |
+| C8 | Círculo azul |
+| C9 | Círculo verde |
+
 ---
 
-## 6. Cómo usar el editor
+## 5. Cómo usar el editor
 
 ### Añadir elementos
 1. Pulsar **○ Etapa** o **→ Transición** en la paleta.
@@ -240,22 +138,56 @@ E1 → T18 (círculo)   → E19 → T20 (rojo)  → E21 → T32 → E1
 - **🏭 Escena**: muestra la cinta transportadora.
 - **🧩 Editor GRAFCET**: muestra el editor de diagramas.
 
+### Guardar/Cargar
+- **💾 Guardar JSON**: descarga el GRAFCET como archivo.
+- **📂 Cargar JSON**: carga un GRAFCET desde archivo.
+- **📐 Cargar Draw.io**: importa un diagrama desde Draw.io (XML).
+
 ---
 
-## 7. Consejos y errores frecuentes
+## 6. Consejos y errores frecuentes
 
 ### Errores frecuentes
-1. **Conectar etapa con etapa directamente**: el motor no evalúa conexiones sin transición.
-2. **Condición vacía**: si una transición no tiene condición, se evalúa como `TRUE`.
-3. **Condición con error de sintaxis**: la transición no se dispara. Revisa la consola (F12).
-4. **Olvidar la vuelta al inicio**: sin la transición de retorno, el GRAFCET se para.
+1. **Conectar etapa con etapa directamente**: el motor no evalúa conexiones sin transición. Siempre: etapa → transición → etapa.
+2. **Condición vacía**: si una transición no tiene condición, se evalúa como `TRUE` (siempre se dispara).
+3. **Condición con error de sintaxis**: la transición no se dispara. Revisa la consola del navegador (F12).
+4. **Olvidar la vuelta al inicio**: sin la transición de retorno, el GRAFCET se para después de una caja.
 5. **No reiniciar**: después de modificar, pulsar RESET antes de RUN.
 
 ### Consejos
 - Empieza con un GRAFCET simple (2-3 etapas) y ve añadiendo complejidad.
 - Usa los presets de condiciones para ahorrar tiempo.
 - Guarda tu GRAFCET en JSON regularmente.
-- Si algo no funciona, abre la consola del navegador (F12).
+- Si algo no funciona, abre la consola del navegador (F12) para ver errores.
+- Usa el zoom (+/-) para ver mejor el GRAFCET.
+- Usa el botón **DOCENTE** para cargar el ejemplo completo y estudiarlo.
+
+---
+
+## 7. Tiempo estimado
+
+| Nivel | Tiempo estimado |
+|---|---|
+| Principiante (sin experiencia con GRAFCET) | 2-3 horas |
+| Intermedio (conoce GRAFCET básico) | 1-1.5 horas |
+| Avanzado (conoce GRAFCET y programación) | 30-45 minutos |
+
+El tiempo depende de la complejidad del ejercicio. Un GRAFCET con 2 ramas (grande/pequeña) se puede hacer en 20-30 minutos. El sistema completo (9 ramas) puede llevar 1-2 horas.
+
+---
+
+## 8. Checklist final
+
+- [ ] La escena se ve correctamente (cintas, contenedores, fotocélulas).
+- [ ] El GRAFCET tiene etapa inicial marcada.
+- [ ] Todas las conexiones alternan etapa → transición → etapa.
+- [ ] Cada transición tiene una condición válida.
+- [ ] Cada etapa tiene las acciones correctas.
+- [ ] Hay una transición de retorno al inicio.
+- [ ] Al pulsar RUN, la caja avanza y se clasifica.
+- [ ] Los contadores suben correctamente.
+- [ ] Al llegar a 10, el lote se completa.
+- [ ] El GRAFCET se guarda y carga correctamente en JSON.
 
 ---
 
