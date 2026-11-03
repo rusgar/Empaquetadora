@@ -82,15 +82,15 @@ export const GrafcetModel = {
 
         if (esEtapa) {
           const etapa = this.agregarEtapa(x, y, this.etapas.length === 0);
-          // Buscar acciones en las líneas siguientes
+          // Buscar acciones en las líneas siguientes (cualquier línea que no sea el ID)
           lineas.slice(1).forEach(l => {
-            if (l.includes('=')) acciones.push(l);
+            if (l && l !== primeraLinea) acciones.push(l);
           });
           etapa.acciones = acciones;
           idMap.set(v.getAttribute('id'), etapa.id);
         } else if (esTransicion) {
           const trans = this.agregarTransicion(x, y);
-          // Buscar condición en las líneas siguientes o en la primera si contiene operadores
+          // Buscar condición en las líneas siguientes
           if (lineas.length > 1) {
             condicion = lineas.slice(1).join(' ');
           } else if (primeraLinea.includes('==') || primeraLinea.includes('>') || primeraLinea.includes('&&')) {
